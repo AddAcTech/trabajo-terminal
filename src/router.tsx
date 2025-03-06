@@ -8,7 +8,7 @@ import PasswordReset from "./Pages/Sessions/PasswordReset";
 import DefaultLayout from "./Pages/App/DefaultLayout";
 import Galery from "./Pages/App/Galery";
 import Settings from "./Pages/App/Settings";
-import Si from "./Components/Si";
+// import Si from "./Components/Si";
 
 const router = createBrowserRouter([
   {
@@ -23,10 +23,10 @@ const router = createBrowserRouter([
         path: "/settings",
         element: <Settings />,
       },
-      {
-        path: "/encrypt",
-        element: <Si />,
-      },
+      // {
+      //   path: "/encrypt",
+      //   element: <Si />,
+      // },
       //   {
       //     path: "/check-email",
       //     element: <CheckEmail />,
