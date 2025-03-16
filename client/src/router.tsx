@@ -8,6 +8,7 @@ import PasswordReset from "./Pages/Sessions/PasswordReset";
 import DefaultLayout from "./Pages/App/DefaultLayout";
 import Galery from "./Pages/App/Galery";
 import Settings from "./Pages/App/Settings";
+import SignUp from "./Pages/Sessions/SignUp";
 // import Si from "./Components/Si";
 
 const router = createBrowserRouter([
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
     path: "/",
     element: <GuestLayout />,
     children: [
+      {
+        path: "/signup",
+        element: <SignUp />,
+      },
       {
         path: "/login",
         element: <Login />,

@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Login() {
   return (
     <div className="h-full flex flex-col items-center justify-center">
@@ -10,23 +12,21 @@ function Login() {
           placeholder="Enter your email"
           type="text"
           name="name"
-          className="border w-full rounded-full bg-amber-100 p-4"
+          className="sessionsInput"
         />
         <input
           placeholder="Enter your password"
           type="password"
           name="name"
-          className="border w-full rounded-full bg-amber-100 p-4"
+          className="sessionsInput"
         />
-        <button className="w-full bg-black text-white font-bold p-2 rounded-lg mt-4">
-          LogIn
-        </button>
+        <button className="sessionsButton">LogIn</button>
       </form>
       <p>
         Do not have an account?{" "}
-        <a href="/" className="text-amber-950">
+        <Link to="/signup" className="text-amber-950">
           Sign Up here
-        </a>
+        </Link>
       </p>
     </div>
   );
