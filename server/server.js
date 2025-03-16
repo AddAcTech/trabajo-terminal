@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import pingRoutes from "./src/routes/ping.routes.js";
 import usersRoutes from "./src/routes/users.route.js";
+import imagesRoutes from "./src/routes/images.routes.js";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(cors({ origin: false }));
 // Routes
 app.use("/ping", pingRoutes);
 app.use("/users", usersRoutes);
+app.use("/images", imagesRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
