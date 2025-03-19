@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 
 // Define types for our form data
 type FormData = {
@@ -49,11 +50,10 @@ function SignUp() {
       if (!response.ok) {
         throw new Error(responseData.error || "Registration failed");
       }
-
-      // Redirect to login page after successful registration
+      toast.success("Registration successful!");
       navigate("/login");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      toast.error(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -170,7 +170,6 @@ function SignUp() {
             </p>
           )}
         </div>
-
         <button type="submit" className="sessionsButton" disabled={loading}>
           {loading ? "Processing..." : "Sign Up"}
         </button>

@@ -33,8 +33,8 @@ const ImageEncryptor: React.FC<{
         const data = imageData.data;
 
         for (let i = 0; i < data.length; i += 4) {
-          //   data[i] = Math.max(data[i] - 70, 0);
-          data[i] = Math.max(255 - data[i], 0); // R
+          data[i] = Math.max(data[i] - 70, 0);
+          // data[i] = data[i + 2]; // R
           data[i + 1] = Math.max(255 - data[i + 1], 0); // G
           data[i + 2] = Math.max(255 - data[i + 2], 0); // B
         }
@@ -60,35 +60,34 @@ const ImageEncryptor: React.FC<{
       onClick={() => onClose()}
     >
       <div
-        className="bg-white p-4 rounded-xl shadow-lg"
+        className="bg-white p-7 rounded-xl shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <h1 className="text-4xl font-bold mb-6">Modificador de Imagen</h1>
-        <input
-          className="block mx-auto mb-4 p-2 border rounded"
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-        />
-        <input
-          className="block mx-auto mb-4 p-2 border rounded"
-          type="text"
-          placeholder="Escribe una pista"
-          value={hint}
-          onChange={(e) => setHint(e.target.value)}
-        />
-        <button
-          className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700"
-          onClick={modifyImage}
-        >
-          Modificar
-        </button>
-        <button
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 mt-4"
-          onClick={handleUpload}
-        >
-          Subir
-        </button>
+        <h1 className="text-4xl font-bold mb-6 text-center">
+          Modificador de Imagen
+        </h1>
+        <div className="max-w-sm mx-auto">
+          <input
+            className="sessionsInput"
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+          />
+          <input
+            className="sessionsInput mt-2"
+            type="text"
+            placeholder="Image title"
+            value={hint}
+            onChange={(e) => setHint(e.target.value)}
+          />
+          <button className="sessionsButton" onClick={modifyImage}>
+            Modificar
+          </button>
+          <button className="sessionsButton mt-1" onClick={handleUpload}>
+            Subir
+          </button>
+        </div>
+
         <div className="flex justify-around mt-6">
           {selectedImage && (
             <div>
