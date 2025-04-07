@@ -1,18 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ImageProps } from "../../Components/Image";
 import Image from "../../Components/Image";
 import ImageEncryptor from "../../Components/Si";
+import { toast } from "react-toastify";
 
 function Galery() {
+  type Image = {
+    createdAt: string;
+    id: number;
+    publicId: string;
+    title: string;
+    updatedAt: string;
+    url: string;
+    userId: number;
+  };
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [myImages, setMyImages] = useState<ImageProps[]>([
-    {
-      date: "2021-09-01",
-      hint: "A beautiful image",
-      image:
-        "https://th.bing.com/th/id/OIP.RT8SnHHM41mQkBpkuNHjqAHaEK?rs=1&pid=ImgDetMain",
-    },
-  ]);
+  const [myImages, setMyImages] = useState<ImageProps[]>([]);
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = (imageData?: {
@@ -25,6 +29,29 @@ function Galery() {
       setMyImages([...myImages, imageData]);
     }
   };
+
+  useEffect(() => {
+    try {
+      const getImages = async () => {
+        const response = await fetch("http://localhost:3000/images/images", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        const data = await response.json();
+        console.log(data);
+        const images: ImageProps[] = data.map((image: Image) => ({
+          date: image.createdAt,
+          hint: image.title,
+          image: image.url,
+        }));
+        setMyImages(images);
+      };
+      getImages();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unknown error");
+    }
+  }, []);
 
   return (
     <div>

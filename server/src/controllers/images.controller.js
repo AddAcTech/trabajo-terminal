@@ -61,3 +61,13 @@ export const storeImage = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getImages = async (req, res) => {
+  try {
+    const images = await db.Image.findAll();
+    res.json(images);
+  } catch (error) {
+    console.error("Error fetching images:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
