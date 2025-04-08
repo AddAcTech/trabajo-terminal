@@ -15,13 +15,17 @@ function Image(image: ImageProps) {
   const handleCloseModal = () => setDownload(false);
 
   return (
-    <div className="flex flex-col gap-4 p-4 shadow rounded-xl bg-white">
+    <div className="flex flex-col gap-4 p-4 shadow rounded-xl bg-white mx-auto">
       {download && <Download onClose={handleCloseModal} />}
       <button className="self-end cursor-pointer" onClick={handleOpenModal}>
         <BsThreeDots />
       </button>
       <div>
-        <img src={image.image} className="bg-gray-700 h-32 w-60 rounded-xl" />
+        <img
+          src={image.image}
+          loading="lazy"
+          className="bg-gray-700 h-32 w-60 rounded-xl"
+        />
       </div>
       <div>
         <p>{image.date}</p>

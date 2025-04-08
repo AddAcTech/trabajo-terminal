@@ -1,19 +1,21 @@
 import React, { useState } from "react";
+import Spinner from "./Spinner";
 
 const ImageEncryptor: React.FC<{
   onClose: (imageData?: { image: string; hint: string; date: string }) => void;
 }> = ({ onClose }) => {
-  const [password, setPassword] = useState("");
+  // const [password, setPassword] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [modifiedImage, setModifiedImage] = useState<string | null>(null);
   const [hint, setHint] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     setSelectedImage(file);
   };
 
-  const modifyImage = async () => {
+  const modifyImage = () => {
     if (!selectedImage) return;
 
     const reader = new FileReader();
@@ -47,10 +49,53 @@ const ImageEncryptor: React.FC<{
     reader.readAsDataURL(selectedImage);
   };
 
-  const handleUpload = () => {
+  const dataURLtoBlob = (dataURL: string) => {
+    const parts = dataURL.split(";base64,");
+    const contentType = parts[0].split(":")[1];
+    const raw = window.atob(parts[1]);
+    const rawLength = raw.length;
+    const uInt8Array = new Uint8Array(rawLength);
+
+    for (let i = 0; i < rawLength; ++i) {
+      uInt8Array[i] = raw.charCodeAt(i);
+    }
+
+    return new Blob([uInt8Array], { type: contentType });
+  };
+
+  const handleUpload = async () => {
     if (modifiedImage) {
-      const today = new Date().toISOString().split("T")[0];
-      onClose({ image: modifiedImage, hint, date: today });
+      setIsLoading(true);
+      const imageBlob = dataURLtoBlob(modifiedImage);
+      const imageFile = new File([imageBlob], "modified_image.png", {
+        type: "image/png",
+      });
+
+      const formData = new FormData();
+      formData.append("image", imageFile);
+      formData.append("description", hint);
+
+      try {
+        const response = await fetch("http://localhost:3000/images/upload", {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (response.ok) {
+          console.log("Image uploaded successfully!");
+          const today = new Date().toISOString().split("T")[0];
+          onClose({ image: modifiedImage, hint, date: today });
+        } else {
+          console.error("Error uploading image:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -83,8 +128,20 @@ const ImageEncryptor: React.FC<{
           <button className="sessionsButton" onClick={modifyImage}>
             Modificar
           </button>
-          <button className="sessionsButton mt-1" onClick={handleUpload}>
-            Subir
+          <button
+            className={`w-full bg-black text-white font-bold p-2 rounded-lg mt-4 ${
+              isLoading ? "bg-gray-400 cursor-default" : "cursor-pointer"
+            }`}
+            onClick={handleUpload}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2 justify-center">
+                <span>Subiendo</span> <Spinner />
+              </div>
+            ) : (
+              "Subir"
+            )}
           </button>
         </div>
 

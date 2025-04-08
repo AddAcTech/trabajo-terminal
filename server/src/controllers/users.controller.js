@@ -52,8 +52,8 @@ export const loginUser = async (req, res) => {
         userId: user.id,
         email: user.email,
       },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "1h" }
+      process.env.JWT_SECRET || "your-secret-key"
+      // { expiresIn: "" }
     );
 
     return res.status(200).json({

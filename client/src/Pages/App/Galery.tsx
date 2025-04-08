@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ImageProps } from "../../Components/Image";
 import Image from "../../Components/Image";
-import ImageEncryptor from "../../Components/Si";
+import ImageEncryptor from "../../Components/ImageEncryptor";
 import { toast } from "react-toastify";
 
 function Galery() {
@@ -39,7 +39,6 @@ function Galery() {
           },
         });
         const data = await response.json();
-        console.log(data);
         const images: ImageProps[] = data.map((image: Image) => ({
           date: image.createdAt,
           hint: image.title,
@@ -55,17 +54,17 @@ function Galery() {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-4 justify-center">
-        {myImages.map((image, index) => (
-          <Image key={index} {...image} />
-        ))}
-      </div>
       <button
-        className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 mt-4"
+        className="bg-neutral-800 text-white py-2 px-4 mb-2 rounded-lg hover:bg-neutral-950 mt-4"
         onClick={handleOpenModal}
       >
         Subir nueva imagen
       </button>
+      <div className="flex flex-wrap justify-between gap-4">
+        {myImages.map((image, index) => (
+          <Image key={index} {...image} />
+        ))}
+      </div>
       {isModalOpen && <ImageEncryptor onClose={handleCloseModal} />}
     </div>
   );
