@@ -34,13 +34,65 @@ const ImageEncryptor: React.FC<{
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
 
-        for (let i = 0; i < data.length; i += 4) {
-          data[i] = Math.max(data[i] - 70, 0);
-          // data[i] = data[i + 2]; // R
-          data[i + 1] = Math.max(255 - data[i + 1], 0); // G
-          data[i + 2] = Math.max(255 - data[i + 2], 0); // B
-        }
+        const blockSize = 8;
 
+        for (let blockY = 0; blockY < canvas.height; blockY += blockSize) {
+          for (let blockX = 0; blockX < canvas.width; blockX += blockSize) {
+            // Generate a random value for this 8x8 block
+            const randomValue = Math.floor(Math.random() * 125); // 0-125
+            // Como se van a intercambiar
+            const channelOrder = Math.floor(Math.random() * 6); // 6 diferentes permutaciones
+
+            // Procesar pixel
+            for (let y = 0; y < blockSize && blockY + y < canvas.height; y++) {
+              for (let x = 0; x < blockSize && blockX + x < canvas.width; x++) {
+                const pixelIndex =
+                  ((blockY + y) * canvas.width + (blockX + x)) * 4;
+
+                const r = data[pixelIndex];
+                const g = data[pixelIndex + 1];
+                const b = data[pixelIndex + 2];
+
+                const rMod = Math.max(r - randomValue, 0);
+                const gMod = Math.max(g - randomValue, 0);
+                const bMod = Math.max(b - randomValue, 0);
+
+                switch (channelOrder) {
+                  case 0: // RGB
+                    data[pixelIndex] = rMod;
+                    data[pixelIndex + 1] = gMod;
+                    data[pixelIndex + 2] = bMod;
+                    break;
+                  case 1: // RBG
+                    data[pixelIndex] = rMod;
+                    data[pixelIndex + 1] = bMod;
+                    data[pixelIndex + 2] = gMod;
+                    break;
+                  case 2: // GRB
+                    data[pixelIndex] = gMod;
+                    data[pixelIndex + 1] = rMod;
+                    data[pixelIndex + 2] = bMod;
+                    break;
+                  case 3: // GBR
+                    data[pixelIndex] = gMod;
+                    data[pixelIndex + 1] = bMod;
+                    data[pixelIndex + 2] = rMod;
+                    break;
+                  case 4: // BRG
+                    data[pixelIndex] = bMod;
+                    data[pixelIndex + 1] = rMod;
+                    data[pixelIndex + 2] = gMod;
+                    break;
+                  case 5: // BGR
+                    data[pixelIndex] = bMod;
+                    data[pixelIndex + 1] = gMod;
+                    data[pixelIndex + 2] = rMod;
+                    break;
+                }
+              }
+            }
+          }
+        }
         ctx.putImageData(imageData, 0, 0);
         setModifiedImage(canvas.toDataURL());
       };
