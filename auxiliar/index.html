@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>División de Imagen en Bloques</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <form id="imageForm">
+    <label>Imagen: <input type="file" accept="image/*" id="imageInput" required></label><br>
+    <label>Número M (bloques MxM): <input type="number" id="blockSize" min="1" required></label><br>
+    <label>Contraseña: <input type="password" id="password" required></label><br>
+    
+    <label><input type="checkbox" id="reverseMode"> Modo reversa</label><br>
+    <button type="submit">Procesar Imagen</button>
+  </form>
+
+  <canvas id="canvas" style="display:none;" willReadFrequently="true" ></canvas>
+  <div id="output" ></div>
+  <button id="downloadBtn" style="display:none;">Descargar imagen procesada</button>
+  <button id="downloadJpgBtn" style="display:none;">Descargar imagen como JPG</button>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
