@@ -12,10 +12,11 @@
     <label>Contraseña: <input type="password" id="password" required></label><br>
     
     <label><input type="checkbox" id="reverseMode"> Modo reversa</label><br>
+    <label><input type="checkbox" id="applyNoise"> Aplicar ruido reversible</label><br>
     <button type="submit">Procesar Imagen</button>
   </form>
 
-  <canvas id="canvas" style="display:none;" willReadFrequently="true" ></canvas>
+  <canvas id="canvas" style="display:block;" willReadFrequently="true" ></canvas>
   <div id="output" ></div>
   <button id="downloadBtn" style="display:none;">Descargar imagen procesada</button>
   <button id="downloadJpgBtn" style="display:none;">Descargar imagen como JPG</button>

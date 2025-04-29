@@ -84,10 +84,14 @@ document.getElementById("imageForm").addEventListener("submit", async function(e
     const shiftPRNG = createHashPRNG(hashArray, totalBlocks);
     const channelPRNG = createHashPRNG(hashArray, totalBlocks * 2);
     const negPRNG = createHashPRNG(hashArray, totalBlocks * 3);
+
+    const applyNoise = document.getElementById("applyNoise").checked;
+    const noisePRNG = createHashPRNG(hashArray, totalBlocks * 4); // nuevo offset
+
   
     const basePermutation = generateDeterministicPermutation(totalBlocks, blockPRNG);
-    const shiftAmount = Math.floor(totalBlocks / password.length);
-    const rotatedPermutation = rotatePermutation(basePermutation, shiftAmount, 'right');
+    //const shiftAmount = Math.floor(totalBlocks / password.length);
+    //const rotatedPermutation = rotatePermutation(basePermutation, shiftAmount, 'right');
   
     let resultImage = new ImageData(new Uint8ClampedArray(imageData.data), width, height);
   
@@ -95,49 +99,61 @@ document.getElementById("imageForm").addEventListener("submit", async function(e
       // CIFRADO
   
       // 1. Permutar bloques
-      resultImage = permuteBlocks(resultImage, blockSize, rotatedPermutation);
+      resultImage = permuteBlocks(resultImage, blockSize, basePermutation);
   
       // 2. Desplazar cada bloque
       for (let by = 0; by < heightInBlocks; by++) {
         for (let bx = 0; bx < widthInBlocks; bx++) {
           const startX = bx * blockSize;
           const startY = by * blockSize;
-          const blockShift = shiftPRNG() % blockSize;
+          const blockShift = shiftPRNG() % (blockSize * blockSize);
           shiftBlock(resultImage, blockSize, startX, startY, blockShift);
         }
       }
   
       // 3. Permutar canales
-      resultImage = permuteChannels(resultImage, blockSize, channelPRNG, false);
+      permuteChannels(resultImage, blockSize, channelPRNG, false);
   
       // 4. Aplicar transformación negativa-positiva
-      resultImage = applyNegativeTransform(resultImage, negPRNG);
+      applyNegativeTransform(resultImage, negPRNG);
+
+      //5. Aplicar ruido, si fue habilitado
+      if (applyNoise) {
+        resultImage = applyNoiseXOR(resultImage, noisePRNG);
+      }
   
     } else {
       // DESCIFRADO
+
+      //0. Revertir ruido si está presente
+      if (applyNoise) {
+        resultImage = applyNoiseXOR(resultImage, noisePRNG);
+      }      
   
       // 1. Revertir transformación negativa-positiva
       resultImage = applyNegativeTransform(resultImage, negPRNG);
   
       // 2. Revertir permutación de canales
-      resultImage = permuteChannels(resultImage, blockSize, channelPRNG, true);
+      permuteChannels(resultImage, blockSize, channelPRNG, true);
   
       // 3. Revertir desplazamiento circular en bloques
       for (let by = 0; by < heightInBlocks; by++) {
         for (let bx = 0; bx < widthInBlocks; bx++) {
           const startX = bx * blockSize;
           const startY = by * blockSize;
-          const blockShift = shiftPRNG() % blockSize;
+          const blockShift = shiftPRNG() % (blockSize * blockSize);
           shiftBlock(resultImage, blockSize, startX, startY, (blockSize - blockShift) % blockSize);
         }
       }
   
       // 4. Revertir permutación de bloques
-      const invertedPermutation = invertPermutation(rotatedPermutation);
+      const invertedPermutation = invertPermutation(basePermutation);
       resultImage = permuteBlocks(resultImage, blockSize, invertedPermutation);
+      
     }
   
     // Finalizar
+    canvas.style.display = "block";
     canvas.width = width;
     canvas.height = height;
     ctx.putImageData(resultImage, 0, 0);
@@ -257,40 +273,50 @@ function permuteBlocks(imageData, blockSize, permutation) {
 }
 
 /**
- * Aplica desplazamiento circular horizontal a un bloque MxM
- * Complejidad temporal: O(M^2)
- * Complejidad espacial: O(M^2)
+ * Aplica desplazamiento circular a todo el bloque (de tamaño MxM).
+ * Se lee el bloque como un array lineal de píxeles y se aplica una rotación circular.
+ * Complejidad temporal: O(M²)
+ * Complejidad espacial: O(M²)
  */
 function shiftBlock(imageData, blockSize, startX, startY, shiftAmount) {
   const { width, data } = imageData;
-  const tempRow = new Uint8ClampedArray(blockSize * 4);
+  const pixelCount = blockSize * blockSize;
+  const pixelData = new Uint8ClampedArray(pixelCount * 4);
 
+  let i = 0;
+
+  // Extraer píxeles linealmente del bloque
   for (let y = 0; y < blockSize; y++) {
-    const baseY = startY + y;
-    if (baseY >= imageData.height) continue;
-
     for (let x = 0; x < blockSize; x++) {
-      const baseX = startX + x;
-      if (baseX >= imageData.width) continue;
+      const px = startX + x;
+      const py = startY + y;
+      if (px >= imageData.width || py >= imageData.height) continue;
 
-      const srcIdx = (baseY * width + baseX) * 4;
-      tempRow.set(data.slice(srcIdx, srcIdx + 4), x * 4);
+      const idx = (py * width + px) * 4;
+      pixelData.set(data.slice(idx, idx + 4), i * 4);
+      i++;
     }
+  }
 
-    const shift = shiftAmount % blockSize;
-    const shiftedRow = new Uint8ClampedArray(blockSize * 4);
+  // Aplicar rotación circular
+  const shifted = new Uint8ClampedArray(pixelData.length);
+  const actualShift = shiftAmount % i;
+  for (let j = 0; j < i; j++) {
+    const target = (j + actualShift) % i;
+    shifted.set(pixelData.slice(j * 4, j * 4 + 4), target * 4);
+  }
 
+  // Reescribir de vuelta los píxeles en el bloque
+  i = 0;
+  for (let y = 0; y < blockSize; y++) {
     for (let x = 0; x < blockSize; x++) {
-      const newX = (x + shift) % blockSize;
-      shiftedRow.set(tempRow.slice(x * 4, (x + 1) * 4), newX * 4);
-    }
+      const px = startX + x;
+      const py = startY + y;
+      if (px >= imageData.width || py >= imageData.height) continue;
 
-    for (let x = 0; x < blockSize; x++) {
-      const baseX = startX + x;
-      if (baseX >= imageData.width) continue;
-
-      const dstIdx = (baseY * width + baseX) * 4;
-      data.set(shiftedRow.slice(x * 4, (x + 1) * 4), dstIdx);
+      const idx = (py * width + px) * 4;
+      data.set(shifted.slice(i * 4, i * 4 + 4), idx);
+      i++;
     }
   }
 }
@@ -358,6 +384,22 @@ function applyNegativeTransform(imageData, prng) {
       data[i + 1] = 255 - data[i + 1];
       data[i + 2] = 255 - data[i + 2];
     }
+  }
+  return new ImageData(data, imageData.width, imageData.height);
+}
+
+/**
+ * Aplica ruido reversible con XOR pseudoaleatorio basado en hash.
+ * Complejidad temporal: O(pixels)
+ * Complejidad espacial: O(1)
+ */
+function applyNoiseXOR(imageData, prng) {
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] ^= prng();     // R
+    data[i + 1] ^= prng(); // G
+    data[i + 2] ^= prng(); // B
+    // Alpha queda intacto
   }
   return new ImageData(data, imageData.width, imageData.height);
 }
