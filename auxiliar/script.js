@@ -107,7 +107,8 @@ document.getElementById("imageForm").addEventListener("submit", async function(e
           const startX = bx * blockSize;
           const startY = by * blockSize;
           const blockShift = shiftPRNG() % (blockSize * blockSize);
-          shiftBlock(resultImage, blockSize, startX, startY, blockShift);
+          const inverseShift = (blockSize * blockSize - blockShift) % (blockSize * blockSize);
+          shiftBlock(resultImage, blockSize, startX, startY, inverseShift);
         }
       }
   
@@ -179,7 +180,7 @@ document.getElementById("imageForm").addEventListener("submit", async function(e
     document.getElementById("downloadJpgBtn").onclick = () => {
       const link = document.createElement('a');
       link.download = reverseMode ? "imagen_descifrada.jpg" : "imagen_cifrada.jpg";
-      link.href = canvas.toDataURL("image/jpeg", 0.95);
+      link.href = canvas.toDataURL("image/jpeg", 1.0);
       link.click();
     };
   }
@@ -279,44 +280,44 @@ function permuteBlocks(imageData, blockSize, permutation) {
  * Complejidad espacial: O(M²)
  */
 function shiftBlock(imageData, blockSize, startX, startY, shiftAmount) {
-  const { width, data } = imageData;
-  const pixelCount = blockSize * blockSize;
-  const pixelData = new Uint8ClampedArray(pixelCount * 4);
+  const { width, height, data } = imageData;
+  const pixels = [];
 
-  let i = 0;
-
-  // Extraer píxeles linealmente del bloque
+  // 1. Extraer píxeles válidos en bloque MxM
   for (let y = 0; y < blockSize; y++) {
     for (let x = 0; x < blockSize; x++) {
       const px = startX + x;
       const py = startY + y;
-      if (px >= imageData.width || py >= imageData.height) continue;
+      if (px >= width || py >= height) continue;
 
       const idx = (py * width + px) * 4;
-      pixelData.set(data.slice(idx, idx + 4), i * 4);
-      i++;
+      if (idx + 3 < data.length) {
+        pixels.push(data.slice(idx, idx + 4));
+      }
     }
   }
 
-  // Aplicar rotación circular
-  const shifted = new Uint8ClampedArray(pixelData.length);
-  const actualShift = shiftAmount % i;
-  for (let j = 0; j < i; j++) {
-    const target = (j + actualShift) % i;
-    shifted.set(pixelData.slice(j * 4, j * 4 + 4), target * 4);
-  }
+  const count = pixels.length;
+  if (count === 0) return;
 
-  // Reescribir de vuelta los píxeles en el bloque
-  i = 0;
+  const offset = shiftAmount % count;
+
+  // 2. Desplazamiento circular (derecha)
+  const rotated = pixels.slice(-offset).concat(pixels.slice(0, -offset));
+
+  // 3. Volver a escribir en imagen (dentro de límites)
+  let i = 0;
   for (let y = 0; y < blockSize; y++) {
     for (let x = 0; x < blockSize; x++) {
       const px = startX + x;
       const py = startY + y;
-      if (px >= imageData.width || py >= imageData.height) continue;
+      if (px >= width || py >= height) continue;
 
       const idx = (py * width + px) * 4;
-      data.set(shifted.slice(i * 4, i * 4 + 4), idx);
-      i++;
+      if (idx + 3 < data.length && i < rotated.length) {
+        data.set(rotated[i], idx);
+        i++;
+      }
     }
   }
 }

@@ -1,24 +1,116 @@
-export async function encryptImage(imageData, blockSize, password, applyNoise = false) {
+let lastImageData = null;
+document.getElementById("imageForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const imageInput = document.getElementById("imageInput").files[0];
+  const blockSize = parseInt(document.getElementById("blockSize").value, 10);
+  const password = document.getElementById("password").value;
+  const reverseMode = document.getElementById("reverseMode").checked;
+  const applyNoise = document.getElementById("applyNoise").checked;
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const output = document.getElementById("output");
+
+  if (!imageInput || !blockSize || !password) {
+    alert("Todos los campos son requeridos.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    const img = new Image();
+    img.onload = async function () {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      let imageData = ctx.getImageData(0, 0, img.width, img.height);
+
+      try {
+        let result;
+        if (!blockSize || !Number.isInteger(blockSize) || blockSize <= 0) {
+          throw new Error("Tamaño de bloque inválido: " + blockSize);
+        }
+        
+        if (!imageData || !imageData.data || !imageData.width || !imageData.height) {
+          throw new Error("ImageData inválido o incompleto");
+        }
+        if (reverseMode) {
+          // Extra rows/cols deben venir desde metadatos guardados anteriormente
+          const extraCols = parseInt(document.getElementById("extraCols").value, 10) || 0;
+          const extraRows = parseInt(document.getElementById("extraRows").value, 10) || 0;
+          result = await decryptImage(imageData, blockSize, password, extraRows, extraCols, applyNoise);
+        } else {
+          result = await encryptImage(imageData, blockSize, password, applyNoise);
+          // Llenamos campos para luego descifrar si se desea
+          document.getElementById("extraCols").value = result.extraCols;
+          document.getElementById("extraRows").value = result.extraRows;
+        }
+
+        canvas.width = result.image.width;
+        canvas.height = result.image.height;
+        ctx.putImageData(result.image, 0, 0);
+
+        output.innerHTML = `
+          <strong>${reverseMode ? "Descifrado" : "Cifrado"} completado.</strong><br>
+          Tiempo: ${result.time} segundos<br>
+          Dimensiones: ${result.image.width} x ${result.image.height}<br>
+          Filas extra: ${reverseMode ? "-" : result.extraRows}, 
+          Columnas extra: ${reverseMode ? "-" : result.extraCols}
+        `;
+
+        document.getElementById("downloadBtn").style.display = "inline-block";
+        document.getElementById("downloadBtn").onclick = () => {
+          const link = document.createElement("a");
+          link.download = reverseMode ? "imagen_descifrada.png" : "imagen_cifrada.png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        };
+
+        document.getElementById("downloadJpgBtn").style.display = "inline-block";
+        document.getElementById("downloadJpgBtn").onclick = () => {
+          const link = document.createElement("a");
+          link.download = reverseMode ? "imagen_descifrada.jpg" : "imagen_cifrada.jpg";
+          link.href = canvas.toDataURL("image/jpeg", 0.95);
+          link.click();
+        };
+
+      } catch (err) {
+        alert("Error al procesar la imagen: " + err.message + " ");
+        console.log(err);
+      }
+    };
+
+    img.src = event.target.result;
+  };
+
+  reader.readAsDataURL(imageInput);
+});
+
+ async function encryptImage(imageData, blockSize, password, applyNoise = false) {
+    console.log("Block Size:", blockSize);
+    console.log("ImageData:", imageData);
+    console.log("Width x Height:", imageData.width, imageData.height);
     const t0 = performance.now();
   
-    const padded = padImageData(imageData, blockSize);
-    const { width, height } = padded;
+    const { imageData: paddedImageData, extraCols, extraRows } = padImageData(imageData, blockSize);
+    const { width, height } = paddedImageData;
     const widthInBlocks = Math.ceil(width / blockSize);
     const heightInBlocks = Math.ceil(height / blockSize);
     const totalBlocks = widthInBlocks * heightInBlocks;
-  
+    console.log(totalBlocks)
     const hashArray = await hashPassword(password);
-  
+    console.log(hashArray)
     const blockPRNG = createHashPRNG(hashArray, 0);
     const shiftPRNG = createHashPRNG(hashArray, totalBlocks);
     const channelPRNG = createHashPRNG(hashArray, totalBlocks * 2);
     const negPRNG = createHashPRNG(hashArray, totalBlocks * 3);
     const noisePRNG = createHashPRNG(hashArray, totalBlocks * 4);
-  
+    //console.log("BloquesX:", blocksX, "BloquesY:", blocksY, "Total:", totalBlocks);
     const permutation = generateDeterministicPermutation(totalBlocks, blockPRNG);
-  
-    let resultImage = permuteBlocks(padded, blockSize, permutation);
-  
+    //console.log("Existe la permutación")
+    let resultImage = permuteBlocks(paddedImageData, blockSize, permutation);
+    //console.oog("Hice la permutación")
     for (let by = 0; by < heightInBlocks; by++) {
       for (let bx = 0; bx < widthInBlocks; bx++) {
         const x = bx * blockSize;
@@ -36,13 +128,16 @@ export async function encryptImage(imageData, blockSize, password, applyNoise = 
     const t1 = performance.now();
     return {
       image: resultImage,
-      extraRows: padded.height - imageData.height,
-      extraCols: padded.width - imageData.width,
+      extraRows: extraRows,
+      extraCols: extraCols,
       time: ((t1 - t0) / 1000).toFixed(2)
     };
   }
   
-  export async function decryptImage(imageData, blockSize, password, extraRows, extraCols, applyNoise = false) {
+   async function decryptImage(imageData, blockSize, password, extraRows, extraCols, applyNoise = false) {
+    console.log("Block Size:", blockSize);
+    console.log("ImageData:", imageData);
+    console.log("Width x Height:", imageData.width, imageData.height);
     const t0 = performance.now();
   
     const { width, height } = imageData;
@@ -57,10 +152,11 @@ export async function encryptImage(imageData, blockSize, password, applyNoise = 
     const channelPRNG = createHashPRNG(hashArray, totalBlocks * 2);
     const negPRNG = createHashPRNG(hashArray, totalBlocks * 3);
     const noisePRNG = createHashPRNG(hashArray, totalBlocks * 4);
-  
+    //console.log("BloquesX:", blocksX, "BloquesY:", blocksY, "Total:", totalBlocks);
     const permutation = generateDeterministicPermutation(totalBlocks, blockPRNG);
     const invertedPermutation = invertPermutation(permutation);
   
+    if (!Number.isFinite(width) || !Number.isFinite(height)) throw new Error("Dimensiones inválidas");
     let resultImage = new ImageData(new Uint8ClampedArray(imageData.data), width, height);
   
     if (applyNoise) resultImage = applyNoiseXOR(resultImage, noisePRNG);
@@ -102,6 +198,8 @@ export async function encryptImage(imageData, blockSize, password, applyNoise = 
     const newWidth = width + extraCols;
     const newHeight = height + extraRows;
   
+    if (!Number.isFinite(blockSize) || blockSize <= 0) throw new Error("blockSize inválido");
+    if (!Number.isFinite(width) || !Number.isFinite(height)) throw new Error("Dimensiones inválidas");
     const paddedData = new Uint8ClampedArray(newWidth * newHeight * 4);
   
     for (let y = 0; y < height; y++) {
@@ -172,6 +270,8 @@ function createHashPRNG(hashArray, offset = 0) {
   function permuteBlocks(imageData, blockSize, permutation) {
     const { width, height, data } = imageData;
     const widthInBlocks = Math.ceil(width / blockSize);
+    if (!Number.isFinite(blockSize) || blockSize <= 0) throw new Error("blockSize inválido");
+    if (!Number.isFinite(width) || !Number.isFinite(height)) throw new Error("Dimensiones inválidas");
     const result = new Uint8ClampedArray(data.length);
   
     for (let i = 0; i < permutation.length; i++) {
@@ -212,44 +312,44 @@ function createHashPRNG(hashArray, offset = 0) {
    * Complejidad espacial: O(M²)
    */
   function shiftBlock(imageData, blockSize, startX, startY, shiftAmount) {
-    const { width, data } = imageData;
-    const pixelCount = blockSize * blockSize;
-    const pixelData = new Uint8ClampedArray(pixelCount * 4);
+    const { width, height, data } = imageData;
+    const pixels = [];
   
-    let i = 0;
-  
-    // Extraer píxeles linealmente del bloque
+    // 1. Extraer píxeles válidos en bloque MxM
     for (let y = 0; y < blockSize; y++) {
       for (let x = 0; x < blockSize; x++) {
         const px = startX + x;
         const py = startY + y;
-        if (px >= imageData.width || py >= imageData.height) continue;
+        if (px >= width || py >= height) continue;
   
         const idx = (py * width + px) * 4;
-        pixelData.set(data.slice(idx, idx + 4), i * 4);
-        i++;
+        if (idx + 3 < data.length) {
+          pixels.push(data.slice(idx, idx + 4));
+        }
       }
     }
   
-    // Aplicar rotación circular
-    const shifted = new Uint8ClampedArray(pixelData.length);
-    const actualShift = shiftAmount % i;
-    for (let j = 0; j < i; j++) {
-      const target = (j + actualShift) % i;
-      shifted.set(pixelData.slice(j * 4, j * 4 + 4), target * 4);
-    }
+    const count = pixels.length;
+    if (count === 0) return;
   
-    // Reescribir de vuelta los píxeles en el bloque
-    i = 0;
+    const offset = shiftAmount % count;
+  
+    // 2. Desplazamiento circular (derecha)
+    const rotated = pixels.slice(-offset).concat(pixels.slice(0, -offset));
+  
+    // 3. Volver a escribir en imagen (dentro de límites)
+    let i = 0;
     for (let y = 0; y < blockSize; y++) {
       for (let x = 0; x < blockSize; x++) {
         const px = startX + x;
         const py = startY + y;
-        if (px >= imageData.width || py >= imageData.height) continue;
+        if (px >= width || py >= height) continue;
   
         const idx = (py * width + px) * 4;
-        data.set(shifted.slice(i * 4, i * 4 + 4), idx);
-        i++;
+        if (idx + 3 < data.length && i < rotated.length) {
+          data.set(rotated[i], idx);
+          i++;
+        }
       }
     }
   }
@@ -335,5 +435,20 @@ function createHashPRNG(hashArray, offset = 0) {
       // Alpha queda intacto
     }
     return new ImageData(data, imageData.width, imageData.height);
+  }
+  
+  function cropImageData(imageData, targetWidth, targetHeight) {
+    const { width, data } = imageData;
+    const croppedData = new Uint8ClampedArray(targetWidth * targetHeight * 4);
+  
+    for (let y = 0; y < targetHeight; y++) {
+      for (let x = 0; x < targetWidth; x++) {
+        const srcIdx = (y * width + x) * 4;
+        const dstIdx = (y * targetWidth + x) * 4;
+        croppedData.set(data.slice(srcIdx, srcIdx + 4), dstIdx);
+      }
+    }
+  
+    return new ImageData(croppedData, targetWidth, targetHeight);
   }
   
