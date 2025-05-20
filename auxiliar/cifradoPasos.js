@@ -2,89 +2,107 @@ let lastImageData = null;
 document.getElementById("imageForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
-  const imageInput = document.getElementById("imageInput").files[0];
-  const blockSize = parseInt(document.getElementById("blockSize").value, 10);
+  const file = document.getElementById("imageInput").files[0];
   const password = document.getElementById("password").value;
+  const blockSize = parseInt(document.getElementById("blockSize").value, 10);
   const reverseMode = document.getElementById("reverseMode").checked;
   const applyNoise = false; //document.getElementById("applyNoise").checked;
 
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-  const output = document.getElementById("output");
-
-  if (!imageInput || !blockSize || !password) {
+  if (!file || !password || !blockSize || blockSize <= 0) {
     alert("Todos los campos son requeridos.");
     return;
   }
 
   const reader = new FileReader();
-  reader.onload = function (event) {
+  reader.onload = async function (event) {
     const img = new Image();
     img.onload = async function () {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      let imageData = ctx.getImageData(0, 0, img.width, img.height);
+      const canvasOriginal = document.getElementById("canvas-original");
+      const ctxOriginal = canvasOriginal.getContext("2d");
 
-      try {
-        let result;
-        if (!blockSize || !Number.isInteger(blockSize) || blockSize <= 0) {
-          throw new Error("Tamaño de bloque inválido: " + blockSize);
+      canvasOriginal.width = img.width;
+      canvasOriginal.height = img.height;
+      ctxOriginal.drawImage(img, 0, 0);
+      const originalImageData = ctxOriginal.getImageData(0, 0, img.width, img.height);
+
+      document.getElementById("step-original").style.display = "block";
+
+      const hashArray = await hashPassword(password);
+      const prngBlock = createHashPRNG(hashArray, 0);
+
+      // Paso 1: Padding
+      const { imageData: padded, extraCols, extraRows } = padImageData(originalImageData, blockSize);
+      const canvasPadded = document.getElementById("canvas-padded");
+      const ctxPadded = canvasPadded.getContext("2d");
+      canvasPadded.width = padded.width;
+      canvasPadded.height = padded.height;
+      ctxPadded.putImageData(padded, 0, 0);
+      document.getElementById("step-padded").style.display = "block";
+
+      let currentImage = new ImageData(new Uint8ClampedArray(padded.data), padded.width, padded.height);
+
+      // Paso 2: Permutación de bloques
+      const totalBlocks = (padded.width / blockSize) * (padded.height / blockSize);
+      const seed64 = hashArray.slice(0, 8).reduce((acc, val, i) => acc + (val << (i * 8)), 0);
+      const permutation = generatePermutationWithPI(totalBlocks, seed64);
+      //const permutation = generateDeterministicPermutation(totalBlocks, prngBlock);
+      currentImage = permuteBlocks(currentImage, blockSize, permutation);
+      const canvasPermuted = document.getElementById("canvas-permuted");
+      const ctxPermuted = canvasPermuted.getContext("2d");
+      canvasPermuted.width = currentImage.width;
+      canvasPermuted.height = currentImage.height;
+      ctxPermuted.putImageData(currentImage, 0, 0);
+      document.getElementById("step-permuted").style.display = "block";
+
+      // Paso 3: Desplazamiento circular por bloque
+      const shiftPRNG = createHashPRNG(hashArray, totalBlocks);
+      const blocksX = currentImage.width / blockSize;
+      const blocksY = currentImage.height / blockSize;
+      for (let by = 0; by < blocksY; by++) {
+        for (let bx = 0; bx < blocksX; bx++) {
+          const shift = shiftPRNG() % (blockSize * blockSize);
+          shiftBlock(currentImage, blockSize, bx * blockSize, by * blockSize, shift);
         }
-        
-        if (!imageData || !imageData.data || !imageData.width || !imageData.height) {
-          throw new Error("ImageData inválido o incompleto");
-        }
-        if (reverseMode) {
-          // Extra rows/cols deben venir desde metadatos guardados anteriormente
-          const extraCols = parseInt(document.getElementById("extraCols").value, 10) || 0;
-          const extraRows = parseInt(document.getElementById("extraRows").value, 10) || 0;
-          result = await decryptImage(imageData, blockSize, password, extraRows, extraCols, applyNoise);
-        } else {
-          result = await encryptImage(imageData, blockSize, password, applyNoise);
-          // Llenamos campos para luego descifrar si se desea
-          document.getElementById("extraCols").value = result.extraCols;
-          document.getElementById("extraRows").value = result.extraRows;
-        }
-
-        canvas.width = result.image.width;
-        canvas.height = result.image.height;
-        ctx.putImageData(result.image, 0, 0);
-
-        output.innerHTML = `
-          <strong>${reverseMode ? "Descifrado" : "Cifrado"} completado.</strong><br>
-          Tiempo: ${result.time} segundos<br>
-          Dimensiones: ${result.image.width} x ${result.image.height}<br>
-          Filas extra: ${reverseMode ? "-" : result.extraRows}, 
-          Columnas extra: ${reverseMode ? "-" : result.extraCols}
-        `;
-
-        document.getElementById("downloadBtn").style.display = "inline-block";
-        document.getElementById("downloadBtn").onclick = () => {
-          const link = document.createElement("a");
-          link.download = reverseMode ? "imagen_descifrada.png" : "imagen_cifrada.png";
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-        };
-
-        document.getElementById("downloadJpgBtn").style.display = "inline-block";
-        document.getElementById("downloadJpgBtn").onclick = () => {
-          const link = document.createElement("a");
-          link.download = reverseMode ? "imagen_descifrada.jpg" : "imagen_cifrada.jpg";
-          link.href = canvas.toDataURL("image/jpeg", 0.95);
-          link.click();
-        };
-
-      } catch (err) {
-        alert("Error al procesar la imagen: " + err.message + " ");
-        console.log(err);
       }
+
+      // Paso 4: Permutación de canales RGB
+      const channelPRNG = createHashPRNG(hashArray, totalBlocks * 2);
+      permuteChannels(currentImage, blockSize, channelPRNG, false);
+
+      // Paso 5: Transformación negativa-positiva
+      const negPRNG = createHashPRNG(hashArray, totalBlocks * 3);
+      applyNegativeTransform(currentImage, negPRNG);
+
+      // Mostrar imagen final
+      const canvasFinal = document.getElementById("canvas-final");
+      const ctxFinal = canvasFinal.getContext("2d");
+      canvasFinal.width = currentImage.width;
+      canvasFinal.height = currentImage.height;
+      ctxFinal.putImageData(currentImage, 0, 0);
+      document.getElementById("step-final").style.display = "block";
+
+      // Activar botones de descarga
+      document.getElementById("downloadBtn").style.display = "inline-block";
+      document.getElementById("downloadBtn").onclick = () => {
+        const link = document.createElement("a");
+        link.download = "imagen_resultado.png";
+        link.href = canvasFinal.toDataURL("image/png");
+        link.click();
+      };
+
+      document.getElementById("downloadJpgBtn").style.display = "inline-block";
+      document.getElementById("downloadJpgBtn").onclick = () => {
+        const link = document.createElement("a");
+        link.download = "imagen_resultado.jpg";
+        link.href = canvasFinal.toDataURL("image/jpeg", 0.95);
+        link.click();
+      };
     };
 
     img.src = event.target.result;
   };
 
-  reader.readAsDataURL(imageInput);
+  reader.readAsDataURL(file);
 });
 
  async function encryptImage(imageData, blockSize, password, applyNoise = false) {

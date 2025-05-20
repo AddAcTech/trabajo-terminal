@@ -85,10 +85,11 @@ document.getElementById("imageForm").addEventListener("submit", async function(e
     const channelPRNG = createHashPRNG(hashArray, totalBlocks * 2);
     const negPRNG = createHashPRNG(hashArray, totalBlocks * 3);
 
-    const applyNoise = document.getElementById("applyNoise").checked;
+    const applyNoise =  false;
     const noisePRNG = createHashPRNG(hashArray, totalBlocks * 4); // nuevo offset
 
   
+
     const basePermutation = generateDeterministicPermutation(totalBlocks, blockPRNG);
     //const shiftAmount = Math.floor(totalBlocks / password.length);
     //const rotatedPermutation = rotatePermutation(basePermutation, shiftAmount, 'right');
@@ -404,3 +405,4 @@ function applyNoiseXOR(imageData, prng) {
   }
   return new ImageData(data, imageData.width, imageData.height);
 }
+
