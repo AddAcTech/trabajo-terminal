@@ -17,20 +17,82 @@ document.getElementById("imageForm").addEventListener("submit", async function (
   reader.onload = async function (event) {
     const img = new Image();
     img.onload = async function () {
-      const result = reverseMode
-      ? await decryptImageStepByStep(imageData, blockSize, password, extraRows, extraCols, applyNoise)
-      : await encryptImageStepByStep(imageData, blockSize, password, applyNoise);
+      const canvasOriginal = document.getElementById("canvas-original");
+      const ctxOriginal = canvasOriginal.getContext("2d");
 
-    for (let i = 0; i < result.steps.length; i++) {
-      const canvas = document.getElementById(`canvas-step-${i}`);
-      const ctx = canvas.getContext("2d");
-      const { width, height, data } = result.steps[i].image;
-      canvas.width = width;
-      canvas.height = height;
-      ctx.putImageData(result.steps[i].image, 0, 0);
+      canvasOriginal.width = img.width;
+      canvasOriginal.height = img.height;
+      ctxOriginal.drawImage(img, 0, 0);
+      const originalImageData = ctxOriginal.getImageData(0, 0, img.width, img.height);
 
-      document.getElementById(`label-step-${i}`).textContent = result.steps[i].label;
-    }
+      document.getElementById("step-original").style.display = "block";
+
+      const hashArray = await hashPassword(password);
+      const prngBlock = await createSecurePRNG(hashArray, 0);
+
+      // Paso 1: Padding
+      const { imageData: padded, extraCols, extraRows } = padImageData(originalImageData, blockSize);
+      const canvasPadded = document.getElementById("canvas-padded");
+      const ctxPadded = canvasPadded.getContext("2d");
+      canvasPadded.width = padded.width;
+      canvasPadded.height = padded.height;
+      ctxPadded.putImageData(padded, 0, 0);
+      document.getElementById("step-padded").style.display = "block";
+
+      let currentImage = new ImageData(new Uint8ClampedArray(padded.data), padded.width, padded.height);
+
+      // Paso 2: Permutación de bloques
+      const totalBlocks = (padded.width / blockSize) * (padded.height / blockSize);
+      const seed64 = hashArray.slice(0, 8).reduce((acc, val, i) => acc + (val << (i * 8)), 0);
+      const permutation = generatePermutationWithPI(totalBlocks, seed64);
+      //const permutation = generateDeterministicPermutation(totalBlocks, prngBlock);
+      currentImage = permuteBlocks(currentImage, blockSize, permutation);
+      const canvasPermuted = document.getElementById("canvas-permuted");
+      const ctxPermuted = canvasPermuted.getContext("2d");
+      canvasPermuted.width = currentImage.width;
+      canvasPermuted.height = currentImage.height;
+      ctxPermuted.putImageData(currentImage, 0, 0);
+      document.getElementById("step-permuted").style.display = "block";
+
+      // Paso 3: Desplazamiento circular por bloque
+      const shiftPRNG = await createSecurePRNG(hashArray, totalBlocks);
+      const blocksX = currentImage.width / blockSize;
+      const blocksY = currentImage.height / blockSize;
+      for (let by = 0; by < blocksY; by++) {
+        for (let bx = 0; bx < blocksX; bx++) {
+          const shift = Math.floor(await shiftPRNG() * (blockSize * blockSize)) ;
+          shiftBlock(currentImage, blockSize, bx * blockSize, by * blockSize, shift);
+        }
+      }
+      const canvasShifted = document.getElementById("canvas-shifted");
+      const ctxShifted = canvasShifted.getContext("2d");
+      canvasShifted.width = currentImage.width;
+      canvasShifted.height = currentImage.height;
+      ctxShifted.putImageData(currentImage, 0, 0);
+      document.getElementById("step-shifted").style.display = "block";
+
+      // Paso 4: Permutación de canales RGB
+      const channelPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
+      await permuteChannels(currentImage, blockSize, channelPRNG, false);
+
+      const canvasChannel= document.getElementById("canvas-channel");
+      const ctxChannel = canvasChannel.getContext("2d");
+      canvasChannel.width = currentImage.width;
+      canvasChannel.height = currentImage.height;
+      ctxChannel.putImageData(currentImage, 0, 0);
+      document.getElementById("step-channel").style.display = "block";
+
+      // Paso 5: Transformación negativa-positiva
+      const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
+      await applyNegativeTransform(currentImage, negPRNG);
+
+      // Mostrar imagen final
+      const canvasFinal = document.getElementById("canvas-final");
+      const ctxFinal = canvasFinal.getContext("2d");
+      canvasFinal.width = currentImage.width;
+      canvasFinal.height = currentImage.height;
+      ctxFinal.putImageData(currentImage, 0, 0);
+      document.getElementById("step-final").style.display = "block";
 
       // Activar botones de descarga
       document.getElementById("downloadBtn").style.display = "inline-block";
