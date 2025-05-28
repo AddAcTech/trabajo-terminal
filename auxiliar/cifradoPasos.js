@@ -71,6 +71,8 @@ document.getElementById("imageForm").addEventListener("submit", async function (
     }
 
       // Activar botones de descarga
+      canvasFinal = document.getElementById("canvas-step-5");
+
       document.getElementById("downloadBtn").style.display = "inline-block";
       document.getElementById("downloadBtn").onclick = () => {
         const link = document.createElement("a");
@@ -82,7 +84,7 @@ document.getElementById("imageForm").addEventListener("submit", async function (
       document.getElementById("downloadJpgBtn").style.display = "inline-block";
       document.getElementById("downloadJpgBtn").onclick = () => {
         const link = document.createElement("a");
-        link.download = "imagen_resultado.jpg";
+        link.download = "resultado_JPEG.jpg";
         link.href = canvasFinal.toDataURL("image/jpeg", 0.95);
         link.click();
       };
@@ -127,7 +129,7 @@ async function encryptImageStepByStep(imageData, blockSize, password, applyNoise
   steps.push({ label: "🎨 Permutación de Canales RGB", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
-  await applyNegativeTransform(current, negPRNG);
+  await applyBlockLevelNegativeTransform(current, blockSize, negPRNG);
   steps.push({ label: "🎭 Transformación Negativa-Positiva", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   return { steps, extraRows, extraCols };
@@ -170,7 +172,7 @@ async function encryptImageStepByStep(imageData, blockSize, password, applyNoise
     }
   
     await permuteChannels(resultImage, blockSize, channelPRNG, false);
-    await applyNegativeTransform(resultImage, negPRNG);
+    await applyBlockLevelNegativeTransform(resultImage, blockSize, negPRNG);
   
     if (applyNoise) resultImage = applyNoiseXOR(resultImage, noisePRNG);
   
@@ -213,7 +215,7 @@ async function decryptImage(imageData, blockSize, password, extraRows, extraCols
   
     if (applyNoise) resultImage = applyNoiseXOR(resultImage, noisePRNG);
   
-    await applyNegativeTransform(resultImage, negPRNG);
+    await applyBlockLevelNegativeTransform(resultImage, blockSize,negPRNG);
     await permuteChannels(resultImage, blockSize, channelPRNG, true);
   
     for (let by = 0; by < heightInBlocks; by++) {
@@ -246,7 +248,7 @@ async function decryptImageStepByStep(imageData, blockSize, password, extraRows 
   let current = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
 
   const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
-  await applyNegativeTransform(current, negPRNG);
+  await applyBlockLevelNegativeTransform(current, blockSize, negPRNG);
   steps.push({ label: "🎭 Reversión de Negativo-Positivo", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   const channelPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
@@ -543,13 +545,50 @@ function createHashPRNG(hashArray, offset = 0) {
     console.log("Acabé de transformar");
     return new ImageData(data, imageData.width, imageData.height);
   }
-  
-  /**
+
+/**
+ * Aplica transformación negativa-positiva por bloque completo.
+ * Cada bloque se invierte completamente o se deja igual.
+ * @param {ImageData} imageData
+ * @param {number} blockSize
+ * @param {function} prng - Generador asíncrono que retorna float entre 0 y 1
+ */
+async function applyBlockLevelNegativeTransform(imageData, blockSize, prng) {
+  console.log("transformando...")
+  const { width, height, data } = imageData;
+  const blocksX = Math.ceil(width / blockSize);
+  const blocksY = Math.ceil(height / blockSize);
+
+  for (let by = 0; by < blocksY; by++) {
+    for (let bx = 0; bx < blocksX; bx++) {
+      const invert = (await prng()) <= 0.5;
+
+      if (!invert) continue;
+
+      for (let y = 0; y < blockSize; y++) {
+        for (let x = 0; x < blockSize; x++) {
+          const px = bx * blockSize + x;
+          const py = by * blockSize + y;
+          if (px >= width || py >= height) continue;
+
+          const idx = (py * width + px) * 4;
+          data[idx] = 255 - data[idx];     // R
+          data[idx + 1] = 255 - data[idx + 1]; // G
+          data[idx + 2] = 255 - data[idx + 2]; // B
+        }
+      }
+    }
+  }
+  console.log("Acabé de transformar")
+  return new ImageData(data, imageData.width, imageData.height);
+}
+
+/**
    * Aplica ruido reversible con XOR pseudoaleatorio basado en hash.
    * Complejidad temporal: O(pixels)
    * Complejidad espacial: O(1)
    */
-  async function applyNoiseXOR(imageData, prng) {
+async function applyNoiseXOR(imageData, prng) {
     const data = imageData.data;
     for (let i = 0; i < data.length; i += 4) {
       data[i] ^= Math.floor (await prng() * 255);     // R
@@ -560,7 +599,7 @@ function createHashPRNG(hashArray, offset = 0) {
     return new ImageData(data, imageData.width, imageData.height);
   }
   
-  function cropImageData(imageData, targetWidth, targetHeight) {
+function cropImageData(imageData, targetWidth, targetHeight) {
     const { width, data } = imageData;
     const croppedData = new Uint8ClampedArray(targetWidth * targetHeight * 4);
   
@@ -575,7 +614,7 @@ function createHashPRNG(hashArray, offset = 0) {
     return new ImageData(croppedData, targetWidth, targetHeight);
   }
   
-  function generatePermutationWithPI(n, seed64) {
+function generatePermutationWithPI(n, seed64) {
     const PI = Math.PI;
     const A = [];
     // Paso 1: multiplicar el número aleatorio por PI varias veces
