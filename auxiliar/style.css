@@ -1,34 +1,18 @@
 body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-  }
-  
-  form {
-    margin-bottom: 20px;
-  }
-  
-  #output {
-    margin-top: 20px;
-    color: green;
-    font-weight: bold;
-  }
-  
-  input, button {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    input, button {
       margin: 5px 0;
     }
-    .canvas-container {
-      margin-top: 20px;
-      border-top: 1px solid #ccc;
-      padding-top: 10px;
-    }
     .step {
-      margin-bottom: 20px;
+      margin: 20px 0;
     }
     .step-title {
       font-weight: bold;
       margin-bottom: 5px;
     }
     canvas {
-      border: 1px solid #888;
+      border: 1px solid #666;
       max-width: 100%;
     }

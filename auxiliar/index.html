@@ -20,34 +20,9 @@
   </form>
 
   <canvas id="canvas" style="display:block;" willReadFrequently="true" ></canvas>
-  <div id="output" ></div>
+  <div id="output"></div>
 
-  <div class="canvas-container">
-    <div class="step" id="step-original">
-      <div class="step-title">🖼️ Imagen Original</div>
-      <canvas id="canvas-original"></canvas>
-    </div>
-    <div class="step" id="step-padded" style="display:none;">
-      <div class="step-title">🧱 Imagen con Padding</div>
-      <canvas id="canvas-padded"></canvas>
-    </div>
-    <div class="step" id="step-permuted" style="display:none;">
-      <div class="step-title">🔀 Permutación de Bloques</div>
-      <canvas id="canvas-permuted"></canvas>
-    </div>
-    <div class="step" id="step-shifted" style="display:none;">
-      <div class="step-title">Desplazamientos horizontales</div>
-      <canvas id="canvas-shifted"></canvas>
-    </div>
-    <div class="step" id="step-channel" style="display:none;">
-      <div class="step-title">Permutación canales de color</div>
-      <canvas id="canvas-channel"></canvas>
-    </div>
-    <div class="step" id="step-final">
-      <div class="step-title">🎯 Imagen Final Cifrada/Descifrada</div>
-      <canvas id="canvas-final"></canvas>
-    </div>
-  </div>
+  <div id="stepsContainer"></div>
 
   <button id="downloadBtn" style="display:none;">Descargar imagen procesada</button>
   <button id="downloadJpgBtn" style="display:none;">Descargar imagen como JPG</button>
