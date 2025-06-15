@@ -81,13 +81,38 @@ document.getElementById("imageForm").addEventListener("submit", async function (
         link.click();
       };
 
-      document.getElementById("downloadJpgBtn").style.display = "inline-block";
-      document.getElementById("downloadJpgBtn").onclick = () => {
+      document.getElementById("downloadJpg95Btn").style.display = "inline-block";
+      document.getElementById("downloadJpg95Btn").onclick = () => {
         const link = document.createElement("a");
-        link.download = "resultado_JPEG.jpg";
+        link.download = "resultado_JPEG95.jpg";
         link.href = canvasFinal.toDataURL("image/jpeg", 0.95);
         link.click();
       };
+
+      document.getElementById("downloadJpg99Btn").style.display = "inline-block";
+      document.getElementById("downloadJpg99Btn").onclick = () => {
+        const link = document.createElement("a");
+        link.download = "resultado_JPEG99.jpg";
+        link.href = canvasFinal.toDataURL("image/jpeg", 0.99);
+        link.click();
+      };
+
+      document.getElementById("downloadJpg85Btn").style.display = "inline-block";
+      document.getElementById("downloadJpg85Btn").onclick = () => {
+        const link = document.createElement("a");
+        link.download = "resultado_JPEG85.jpg";
+        link.href = canvasFinal.toDataURL("image/jpeg", 0.85);
+        link.click();
+      };
+
+      document.getElementById("downloadWebpBtn").style.display = "inline-block";
+      document.getElementById("downloadWebpBtn").onclick = () => {
+        const link = document.createElement("a");
+        link.download = reverseMode ? "imagen_descifrada.webp" : "imagen_cifrada.webp";
+        link.href = canvasFinal.toDataURL("image/webp", 0.95);
+        link.click();
+      };
+
     };
 
     img.src = event.target.result;
@@ -98,19 +123,17 @@ document.getElementById("imageForm").addEventListener("submit", async function (
 
 async function encryptImageStepByStep(imageData, blockSize, password, applyNoise = false) {
   const steps = [];
-
   const hashArray = await hashPassword(password);
-
   const { imageData: padded, extraCols, extraRows } = padImageData(imageData, blockSize);
-  steps.push({ label: "🖼️ Imagen Original", image: imageData });
-  steps.push({ label: "➕ Padding Aplicado", image: padded });
+  steps.push({ label: "Imagen Original", image: imageData });
+  steps.push({ label: "Padding Aplicado", image: padded });
 
   const totalBlocks = (padded.width / blockSize) * (padded.height / blockSize);
   const prngBlock = await createSecurePRNG(hashArray, 0);
   const seed64 = hashArray.slice(0, 8).reduce((acc, val, i) => acc + (val << (i * 8)), 0);
   const permutation = generatePermutationWithPI(totalBlocks, seed64);
   let current = permuteBlocks(padded, blockSize, permutation);
-  steps.push({ label: "🔀 Permutación de Bloques", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
+  steps.push({ label: "Permutación de Bloques", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   const shiftPRNG = await createSecurePRNG(hashArray, 0);
   const blocksX = current.width / blockSize;
@@ -122,15 +145,15 @@ async function encryptImageStepByStep(imageData, blockSize, password, applyNoise
       shiftBlock(current, blockSize, bx * blockSize, by * blockSize, shift);
     }
   }
-  steps.push({ label: "🔄 Desplazamiento Circular por Bloques", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
+  steps.push({ label: "Desplazamiento Circular por bloques", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   const channelPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
   await permuteChannels(current, blockSize, channelPRNG, false);
-  steps.push({ label: "🎨 Permutación de Canales RGB", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
+  steps.push({ label: "Permutación de Canales RGB por bloques", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
   await applyBlockLevelNegativeTransform(current, blockSize, negPRNG);
-  steps.push({ label: "🎭 Transformación Negativa-Positiva", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
+  steps.push({ label: "Transformación Negativa-Positiva por bloques", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   return { steps, extraRows, extraCols };
 }
@@ -150,11 +173,10 @@ async function encryptImageStepByStep(imageData, blockSize, password, applyNoise
     console.log(totalBlocks)
     const hashArray = await hashPassword(password);
     console.log(hashArray)
-    const blockPRNG = await createSecurePRNG(hashArray, 0);
-    const shiftPRNG = await createSecurePRNG(hashArray, totalBlocks);
-    const channelPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
-    const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
-    const noisePRNG = await createSecurePRNG(hashArray, totalBlocks * 4);
+    const shiftPRNG = await createSecurePRNG(hashArray, 0);
+    const channelPRNG = await createSecurePRNG(hashArray, totalBlocks );
+    const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
+    const noisePRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
     //console.log("BloquesX:", blocksX, "BloquesY:", blocksY, "Total:", totalBlocks);
     const seed64 = hashArray.slice(0, 8).reduce((acc, val, i) => acc + (val << (i * 8)), 0);
     const permutation = generatePermutationWithPI(totalBlocks, seed64);
@@ -198,11 +220,10 @@ async function decryptImage(imageData, blockSize, password, extraRows, extraCols
   
     const hashArray = await hashPassword(password);
   
-    const blockPRNG = await createSecurePRNG(hashArray, 0);
-    const shiftPRNG = await createSecurePRNG(hashArray, totalBlocks);
-    const channelPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
-    const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
-    const noisePRNG = await createSecurePRNG(hashArray, totalBlocks * 4);
+    const shiftPRNG = await createSecurePRNG(hashArray, 0);
+    const channelPRNG = await createSecurePRNG(hashArray, totalBlocks );
+    const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
+    const noisePRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
     //console.log("BloquesX:", blocksX, "BloquesY:", blocksY, "Total:", totalBlocks);
     //const permutation = generateDeterministicPermutation(totalBlocks, blockPRNG);
     const seed64 = hashArray.slice(0, 8).reduce((acc, val, i) => acc + (val << (i * 8)), 0);
@@ -249,11 +270,11 @@ async function decryptImageStepByStep(imageData, blockSize, password, extraRows 
 
   const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
   await applyBlockLevelNegativeTransform(current, blockSize, negPRNG);
-  steps.push({ label: "🎭 Reversión de Negativo-Positivo", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
+  steps.push({ label: "Reversión de Negativo-Positivo", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   const channelPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
   await permuteChannels(current, blockSize, channelPRNG, true);
-  steps.push({ label: "🎨 Reversión de Canales RGB", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
+  steps.push({ label: "Reversión de Canales RGB", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   const shiftPRNG = await createSecurePRNG(hashArray, 0);
   const blocksX = current.width / blockSize;
