@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Spinner from "./Spinner";
 
+import { encryptImage } from './cifrado'; // Asegúrate que el path sea correcto
+
 const ImageEncryptor: React.FC<{
   onClose: (imageData?: { image: string; hint: string; date: string }) => void;
 }> = ({ onClose }) => {
@@ -15,14 +17,18 @@ const ImageEncryptor: React.FC<{
     setSelectedImage(file);
   };
 
-  const modifyImage = () => {
+  const modifyImage = async () => {
     if (!selectedImage) return;
+
+    const password = "p455w0rd-PL4C3H0LD3R";
+    const blockSize = 8;
 
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
       img.src = reader.result as string;
-      img.onload = () => {
+
+      img.onload = async () => {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
@@ -32,69 +38,21 @@ const ImageEncryptor: React.FC<{
         ctx.drawImage(img, 0, 0);
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
 
-        const blockSize = 8;
+        try {
+          const { image: encryptedImage } = await encryptImage(imageData, blockSize, password);
 
-        for (let blockY = 0; blockY < canvas.height; blockY += blockSize) {
-          for (let blockX = 0; blockX < canvas.width; blockX += blockSize) {
-            // Generate a random value for this 8x8 block
-            const randomValue = Math.floor(Math.random() * 125); // 0-125
-            // Como se van a intercambiar
-            const channelOrder = Math.floor(Math.random() * 6); // 6 diferentes permutaciones
+          const outputCanvas = document.createElement("canvas");
+          outputCanvas.width = encryptedImage.width;
+          outputCanvas.height = encryptedImage.height;
+          const outputCtx = outputCanvas.getContext("2d");
+          if (!outputCtx) return;
+          outputCtx.putImageData(encryptedImage, 0, 0);
 
-            // Procesar pixel
-            for (let y = 0; y < blockSize && blockY + y < canvas.height; y++) {
-              for (let x = 0; x < blockSize && blockX + x < canvas.width; x++) {
-                const pixelIndex =
-                  ((blockY + y) * canvas.width + (blockX + x)) * 4;
-
-                const r = data[pixelIndex];
-                const g = data[pixelIndex + 1];
-                const b = data[pixelIndex + 2];
-
-                const rMod = Math.max(r - randomValue, 0);
-                const gMod = Math.max(g - randomValue, 0);
-                const bMod = Math.max(b - randomValue, 0);
-
-                switch (channelOrder) {
-                  case 0: // RGB
-                    data[pixelIndex] = rMod;
-                    data[pixelIndex + 1] = gMod;
-                    data[pixelIndex + 2] = bMod;
-                    break;
-                  case 1: // RBG
-                    data[pixelIndex] = rMod;
-                    data[pixelIndex + 1] = bMod;
-                    data[pixelIndex + 2] = gMod;
-                    break;
-                  case 2: // GRB
-                    data[pixelIndex] = gMod;
-                    data[pixelIndex + 1] = rMod;
-                    data[pixelIndex + 2] = bMod;
-                    break;
-                  case 3: // GBR
-                    data[pixelIndex] = gMod;
-                    data[pixelIndex + 1] = bMod;
-                    data[pixelIndex + 2] = rMod;
-                    break;
-                  case 4: // BRG
-                    data[pixelIndex] = bMod;
-                    data[pixelIndex + 1] = rMod;
-                    data[pixelIndex + 2] = gMod;
-                    break;
-                  case 5: // BGR
-                    data[pixelIndex] = bMod;
-                    data[pixelIndex + 1] = gMod;
-                    data[pixelIndex + 2] = rMod;
-                    break;
-                }
-              }
-            }
-          }
+          setModifiedImage(outputCanvas.toDataURL());
+        } catch (error) {
+          console.error("Error al cifrar la imagen:", error);
         }
-        ctx.putImageData(imageData, 0, 0);
-        setModifiedImage(canvas.toDataURL());
       };
     };
 
