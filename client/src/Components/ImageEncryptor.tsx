@@ -73,19 +73,78 @@ const ImageEncryptor: React.FC<{
     return new Blob([uInt8Array], { type: contentType });
   };
 
+  function imageToJpegBlob(imageSrc: string, quality = 0.85): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = imageSrc;
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject("No se pudo obtener el contexto");
+
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject("Error al generar JPEG");
+        }, "image/jpeg", quality);
+      };
+
+      img.onerror = () => reject("No se pudo cargar la imagen");
+    });
+  }
+
+  function blobToDataURL(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+
+  function downloadBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const downloadJPEG = async () => {
+    if (!modifiedImage) return;
+    setIsLoading(true);
+    try {
+      const blob = await imageToJpegBlob(modifiedImage, 0.85);
+      downloadBlob(blob, "imagen_cifrada.jpg");
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error al convertir o descargar la imagen:", error);
+      setIsLoading(false);
+    }
+  };
+
   const handleUpload = async () => {
     if (modifiedImage) {
       setIsLoading(true);
-      const imageBlob = dataURLtoBlob(modifiedImage);
-      const imageFile = new File([imageBlob], "modified_image.png", {
-        type: "image/png",
-      });
 
-      const formData = new FormData();
-      formData.append("image", imageFile);
-      formData.append("description", hint);
+      try {       
+        const blob = await imageToJpegBlob(modifiedImage, 0.85);
+        const imageFile = new File([blob], "modified_image.jpg", { type: "image/jpeg" });
 
-      try {
+        
+        const formData = new FormData();
+        formData.append("image", imageFile);
+        formData.append("description", hint);
+        //después, vamos a necesitar este dato de columnas y filas que se añaden
+        //formData.append("extraCols", String(extraCols || 0));
+        //formData.append("extraRows", String(extraRows || 0));
+
         const response = await fetch("http://localhost:3000/images/upload", {
           method: "POST",
           body: formData,
@@ -97,17 +156,21 @@ const ImageEncryptor: React.FC<{
         if (response.ok) {
           console.log("Image uploaded successfully!");
           const today = new Date().toISOString().split("T")[0];
-          onClose({ image: modifiedImage, hint, date: today });
+          const base64JPEG = await blobToDataURL(blob);
+          onClose({ image: base64JPEG, hint, date: today });
         } else {
           console.error("Error uploading image:", response.statusText);
         }
+
+        setIsLoading(false);
+        
       } catch (error) {
         console.error("Error uploading image:", error);
-      } finally {
         setIsLoading(false);
       }
     }
   };
+
 
   return (
     <div
@@ -119,7 +182,7 @@ const ImageEncryptor: React.FC<{
         onClick={(e) => e.stopPropagation()}
       >
         <h1 className="text-4xl font-bold mb-6 text-center">
-          Modificador de Imagen
+          Cifrado de imagen
         </h1>
         <div className="max-w-sm mx-auto">
           <input
@@ -136,7 +199,7 @@ const ImageEncryptor: React.FC<{
             onChange={(e) => setHint(e.target.value)}
           />
           <button className="sessionsButton" onClick={modifyImage}>
-            Modificar
+            Aplicar cifrado
           </button>
           <button
             className={`w-full bg-black text-white font-bold p-2 rounded-lg mt-4 ${
@@ -168,12 +231,15 @@ const ImageEncryptor: React.FC<{
           )}
           {modifiedImage && (
             <div>
-              <h2 className="text-2xl font-semibold mb-2">Imagen Modificada</h2>
+              <h2 className="text-2xl font-semibold mb-2">Imagen Cifrada</h2>
               <img
                 src={modifiedImage}
-                alt="Imagen Modificada"
+                alt="Imagen Cifrada"
                 className="max-w-xs max-h-xs border border-gray-300 rounded p-2"
               />
+              <button className="sessionsButton" onClick={downloadJPEG}>
+                Descargar como JPEG
+              </button>
             </div>
           )}
         </div>
