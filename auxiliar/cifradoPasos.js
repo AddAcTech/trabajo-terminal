@@ -141,18 +141,24 @@ async function encryptImageStepByStep(imageData, blockSize, password, applyNoise
 
   for (let by = 0; by < blocksY; by++) {
     for (let bx = 0; bx < blocksX; bx++) {
-      const shift = Math.floor(await shiftPRNG() * (blockSize * blockSize));
+      const raw = await shiftPRNG();
+      const shift = Math.floor( raw * (blockSize * blockSize));
+      console.log(`  - Bloque (${bx}, ${by}): aleatorio = ${raw}, shift = ${shift}`);
       shiftBlock(current, blockSize, bx * blockSize, by * blockSize, shift);
     }
   }
   steps.push({ label: "Desplazamiento Circular por bloques", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   const channelPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
-  await permuteChannels(current, blockSize, channelPRNG, false);
+  await permuteChannels(current, blockSize, channelPRNG, false, (bx, by, raw, permIndex) => {
+    console.log(`  - Bloque (${bx}, ${by}): aleatorio = ${raw}, permIndex = ${permIndex}`);
+  });
   steps.push({ label: "Permutación de Canales RGB por bloques", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
-  await applyBlockLevelNegativeTransform(current, blockSize, negPRNG);
+  await applyBlockLevelNegativeTransform(current, blockSize, negPRNG, (bx, by, raw, invert) => {
+    console.log(`  - Bloque (${bx}, ${by}): aleatorio = ${raw}, invertir = ${invert}`);
+  });
   steps.push({ label: "Transformación Negativa-Positiva por bloques", image: new ImageData(new Uint8ClampedArray(current.data), current.width, current.height) });
 
   return { steps, extraRows, extraCols };
@@ -416,9 +422,10 @@ function createHashPRNG(hashArray, offset = 0) {
     if (!Number.isFinite(blockSize) || blockSize <= 0) throw new Error("blockSize inválido");
     if (!Number.isFinite(width) || !Number.isFinite(height)) throw new Error("Dimensiones inválidas");
     const result = new Uint8ClampedArray(data.length);
-  
+    console.log("Ejecutando permutación de bloques");
     for (let i = 0; i < permutation.length; i++) {
       const srcIdx = permutation[i];
+      console.log("\tEl bloque "+srcIdx+" se intercambia con el bloque " + i);
       const srcX = (srcIdx % widthInBlocks) * blockSize;
       const srcY = Math.floor(srcIdx / widthInBlocks) * blockSize;
   
@@ -502,7 +509,7 @@ function createHashPRNG(hashArray, offset = 0) {
    * Complejidad temporal: O(pixels)
    * Complejidad espacial: O(1) -> se modifica en sitio
    */
-  async function permuteChannels(imageData, blockSize, prng, reverse) {
+  async function permuteChannels(imageData, blockSize, prng, reverse, onDebugLog) {
     console.log("Ejecutando permutación de canales...");
     const { width, height, data } = imageData;
     const widthInBlocks = Math.ceil(width / blockSize);
@@ -521,9 +528,10 @@ function createHashPRNG(hashArray, offset = 0) {
     for (let by = 0; by < heightInBlocks; by++) {
       for (let bx = 0; bx < widthInBlocks; bx++) {
         let perm;
-        const val = Math.floor(await prng() * 6) ; //remover % 6 con el generador más seguro
+        const raw = await prng()
+        const val = Math.floor( raw * 6) ; //remover % 6 con el generador más seguro
         perm = reverse ? inversePermutations[val] : permutations[val];
-  
+        if (onDebugLog) onDebugLog(bx, by, raw, val);
         for (let y = 0; y < blockSize; y++) {
           for (let x = 0; x < blockSize; x++) {
             const px = bx * blockSize + x;
@@ -574,7 +582,7 @@ function createHashPRNG(hashArray, offset = 0) {
  * @param {number} blockSize
  * @param {function} prng - Generador asíncrono que retorna float entre 0 y 1
  */
-async function applyBlockLevelNegativeTransform(imageData, blockSize, prng) {
+async function applyBlockLevelNegativeTransform(imageData, blockSize, prng, onDebugLog) {
   console.log("transformando...")
   const { width, height, data } = imageData;
   const blocksX = Math.ceil(width / blockSize);
@@ -582,8 +590,10 @@ async function applyBlockLevelNegativeTransform(imageData, blockSize, prng) {
 
   for (let by = 0; by < blocksY; by++) {
     for (let bx = 0; bx < blocksX; bx++) {
-      const invert = (await prng()) <= 0.5;
-
+      const raw = await prng();
+      const invert = (raw) <= 0.5;
+      if (onDebugLog) onDebugLog(bx, by, raw, invert);
+      //si no es arriba de 0.5, no evalua
       if (!invert) continue;
 
       for (let y = 0; y < blockSize; y++) {
@@ -639,18 +649,27 @@ function generatePermutationWithPI(n, seed64) {
     const PI = Math.PI;
     const A = [];
     // Paso 1: multiplicar el número aleatorio por PI varias veces
+    console.log("Semilla permutación: (%s = %s)",seed64, seed64.toString(2));
+
     for (let i = 0; i < n; i++) {
       const mixed = (seed64 + i) * PI;
+      console.log((seed64 + i) + " x 3.1416 = " + mixed);
       const fractional = mixed - Math.floor(mixed); // parte decimal
+      console.log("\t"+fractional);
       A.push(fractional);
     }
     // Paso 2: construir coeficientes
-    const coefficients = A.map(a => Math.floor(a * 1e12) % (n + 1));
+    const coefficients = A.map(a => Math.floor(a * 1e12));
+    //Valores del arreglo
+    console.log(coefficients); //Ya solo falta ser truncados por Fisher-Yates 
     // Paso 3: aplicar los coeficientes al arreglo base [0..n-1] usando Fisher-Yates modificado
     const perm = [...Array(n).keys()];
     for (let i = n - 1; i > 0; i--) {
       const j = coefficients[i] % (i + 1);
       [perm[i], perm[j]] = [perm[j], perm[i]];
+      console.log ("i: " + i + ", j: " + j)
+      console.log(perm);
     }
+    console.log(perm);
     return perm;
   }
