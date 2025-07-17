@@ -437,9 +437,9 @@ function generatePermutationWithPI(n: number, seed64: number) {
       const fractional = mixed - Math.floor(mixed); // parte decimal
       A.push(fractional);
     }
-    // Paso 2: construir coeficientes
-    const coefficients = A.map(a => Math.floor(a * 1e12) % (n + 1));
-    // Paso 3: aplicar los coeficientes al arreglo base [0..n-1] usando Fisher-Yates modificado
+    // Paso 2: ajutar los coeficientes de fracciones a un entero
+    const coefficients = A.map(a => Math.floor(a * 1e12) );
+    // Paso 3: aplicar los coeficientes al arreglo base [0..n-1] usando Fisher-Yates
     const perm = [...Array(n).keys()];
     for (let i = n - 1; i > 0; i--) {
       const j = coefficients[i] % (i + 1);
