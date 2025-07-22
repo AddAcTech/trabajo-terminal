@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { IoMdPhotos } from "react-icons/io";
 import Tooltip from "./Tooltip";
-import { LuUsers, LuSettings } from "react-icons/lu";
+import { LuUsers, LuSettings, LuLogIn } from "react-icons/lu";
 
 function Sidebar() {
   const [activeIcon, setActiveIcon] = useState<string>();
@@ -60,6 +60,16 @@ function Sidebar() {
               size={30}
               className={`mx-auto ${
                 activeIcon === "Settings" ? "text-black" : "text-gray-400"
+              }`}
+            />
+          </Link>
+        </Tooltip>
+        <Tooltip text="Login">
+          <Link to="/login" onClick={() => handleSetActive("Login")}>
+            <LuLogIn
+              size={30}
+              className={`mx-auto ${
+                activeIcon === "Login" ? "text-black" : "text-gray-400"
               }`}
             />
           </Link>
