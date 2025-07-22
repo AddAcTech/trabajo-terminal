@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import Spinner from "./Spinner";
-
-import { encryptImage } from './cifrado'; // Asegúrate que el path sea correcto
+import { encryptImage } from './cifrado'; 
 
 const ImageEncryptor: React.FC<{
-  onClose: (imageData?: { image: string; hint: string; date: string }) => void;
+  onClose: (imageData?: { image: string; hint: string; date: string ; extraCols: number; extraRows: number; }) => void;
 }> = ({ onClose }) => {
   // const [password, setPassword] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [modifiedImage, setModifiedImage] = useState<string | null>(null);
   const [hint, setHint] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const [extraRows, setExtraRows] = useState(0);
+  const [extraCols, setExtraCols] = useState(0);
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     setSelectedImage(file);
@@ -40,7 +40,7 @@ const ImageEncryptor: React.FC<{
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
         try {
-          const { image: encryptedImage } = await encryptImage(imageData, blockSize, password);
+          const { image: encryptedImage, extraRows : filasExtra, extraCols : columnasExtra} = await encryptImage(imageData, blockSize, password);
 
           const outputCanvas = document.createElement("canvas");
           outputCanvas.width = encryptedImage.width;
@@ -50,6 +50,8 @@ const ImageEncryptor: React.FC<{
           outputCtx.putImageData(encryptedImage, 0, 0);
 
           setModifiedImage(outputCanvas.toDataURL());
+          setExtraCols(columnasExtra);
+          setExtraRows(filasExtra);
         } catch (error) {
           console.error("Error al cifrar la imagen:", error);
         }
@@ -129,8 +131,8 @@ const ImageEncryptor: React.FC<{
         formData.append("image", imageFile);
         formData.append("description", hint);
         //después, vamos a necesitar este dato de columnas y filas que se añaden
-        //formData.append("extraCols", String(extraCols || 0));
-        //formData.append("extraRows", String(extraRows || 0));
+        formData.append("extraCols", String(extraCols || 0));
+        formData.append("extraRows", String(extraRows || 0));
 
         const response = await fetch("http://localhost:3000/images/upload", {
           method: "POST",
@@ -144,7 +146,7 @@ const ImageEncryptor: React.FC<{
           console.log("Image uploaded successfully!");
           const today = new Date().toISOString().split("T")[0];
           const base64JPEG = await blobToDataURL(blob);
-          onClose({ image: base64JPEG, hint, date: today });
+          onClose({ image: base64JPEG, hint, date: today, extraCols: extraCols, extraRows: extraRows});
         } else {
           console.error("Error uploading image:", response.statusText);
         }

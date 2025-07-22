@@ -4,13 +4,14 @@ import { decryptImage } from "./cifrado";
 type DownloadProps = {
   onClose: () => void;
   src: string;
+  hint : string;
   password: string;
   blockSize: number;
   extraCols: number;
   extraRows: number;
 };
 
-const Download: React.FC<DownloadProps> = ({ onClose, src, password, blockSize, extraCols, extraRows }) => {
+const Download: React.FC<DownloadProps> = ({ onClose, hint, src, password, blockSize, extraCols, extraRows }) => {
   const [isDecrypting, setIsDecrypting] = useState(false);
 
   const handleDownloadCifrada = async () => {
@@ -45,8 +46,8 @@ const Download: React.FC<DownloadProps> = ({ onClose, src, password, blockSize, 
 
         outputCtx.putImageData(decryptedImage, 0, 0);
         const link = document.createElement("a");
-        link.download = "imagen_descifrada.jpg";
-        link.href = outputCanvas.toDataURL("image/png"); //"image/jpeg",0.85
+        link.download = "imagen_descifrada_"+hint+".jpeg"; //sustituir por la notación ´someting${var}´, pero no me sale de momento
+        link.href = outputCanvas.toDataURL("image/jpeg", 0.85); //"image/jpeg",0.85
         link.click();
         
         setIsDecrypting(false);

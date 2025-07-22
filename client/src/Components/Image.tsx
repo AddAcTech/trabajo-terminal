@@ -6,6 +6,8 @@ export type ImageProps = {
   date: string;
   hint: string;
   image: string;
+  extraCols : number;
+  extraRows: number;
 };
 
 const password = "p455w0rd-PL4C3H0LD3R";
@@ -21,11 +23,12 @@ function Image(image: ImageProps) {
     <div className="flex flex-col gap-4 p-4 shadow rounded-xl bg-white mx-auto">
       {download && <Download
                     onClose={handleCloseModal}
+                    hint = {image.hint}
                     src={image.image}
                     password={password}
                     blockSize={blockSize}
-                    extraCols={0}
-                    extraRows={0}
+                    extraCols={image.extraCols}
+                    extraRows={image.extraRows}
                   />}
       <button className="self-end cursor-pointer" onClick={handleOpenModal}>
         <BsDownload />

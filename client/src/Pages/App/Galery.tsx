@@ -13,6 +13,8 @@ function Galery() {
     updatedAt: string;
     url: string;
     userId: number;
+    extraCols: number;
+    extraRows: number;
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,6 +25,9 @@ function Galery() {
     image: string;
     hint: string;
     date: string;
+    extraCols: number;
+    extraRows: number;
+
   }) => {
     setIsModalOpen(false);
     if (imageData) {
@@ -43,6 +48,8 @@ function Galery() {
           date: image.createdAt,
           hint: image.title,
           image: image.url,
+          extraCols: image.extraCols,
+          extraRows: image.extraRows
         }));
         setMyImages(images);
       };

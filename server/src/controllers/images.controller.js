@@ -22,7 +22,7 @@ export const storeImage = async (req, res) => {
     }
 
     // Get title from request body
-    const { description } = req.body;
+    const { description, extraCols, extraRows } = req.body;
 
     if (!description) {
       return res.status(400).json({ error: "Description is required" });
@@ -45,6 +45,8 @@ export const storeImage = async (req, res) => {
       title: description,
       publicId: uploadResponse.public_id,
       userId: req.user.userId, // Using the userId from the JWT token
+      extraCols: extraCols,
+      extraRows: extraRows,
     });
 
     return res.status(201).json({
