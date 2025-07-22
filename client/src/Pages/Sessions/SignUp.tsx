@@ -32,18 +32,21 @@ function SignUp() {
       setError("");
 
       // API call directly in the component
-      const response = await fetch("http://localhost:3000/users/store", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          password: data.password,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/store`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            password: data.password,
+          }),
+        }
+      );
 
       const responseData = await response.json();
 
