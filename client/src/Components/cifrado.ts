@@ -1,8 +1,7 @@
 export async function encryptImage(
   imageData: ImageData,
   blockSize: number,
-  password: string,
-  applyNoise = false
+  password: string
 ) {
   console.log("Block Size:", blockSize);
   console.log("ImageData:", imageData);
@@ -60,8 +59,7 @@ export async function decryptImage(
   blockSize: number,
   password: any,
   extraRows: number,
-  extraCols: number,
-  applyNoise = false
+  extraCols: number
 ) {
   console.log("Block Size:", blockSize);
   console.log("ImageData:", imageData);
