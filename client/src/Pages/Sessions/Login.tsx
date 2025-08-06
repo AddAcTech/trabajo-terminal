@@ -24,16 +24,19 @@ function Login() {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:3000/users/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: data.email,
+            password: data.password,
+          }),
+        }
+      );
 
       const responseData = await response.json();
 

@@ -134,13 +134,17 @@ const ImageEncryptor: React.FC<{
         formData.append("extraCols", String(extraCols || 0));
         formData.append("extraRows", String(extraRows || 0));
 
-        const response = await fetch("http://localhost:3000/images/upload", {
-          method: "POST",
-          body: formData,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/images/upload`,
+          {
+            method: "POST",
+            body: formData,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
 
         if (response.ok) {
           console.log("Image uploaded successfully!");

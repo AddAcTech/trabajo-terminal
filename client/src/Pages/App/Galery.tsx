@@ -38,11 +38,14 @@ function Galery() {
   useEffect(() => {
     try {
       const getImages = async () => {
-        const response = await fetch("http://localhost:3000/images/images", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/images/images`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         const data = await response.json();
         const images: ImageProps[] = data.map((image: Image) => ({
           date: image.createdAt,
