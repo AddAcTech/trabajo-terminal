@@ -1,9 +1,15 @@
 import React, { useState } from "react";
 import Spinner from "./Spinner";
-import { encryptImage } from './cifrado'; 
+import { encryptImage } from "./cifrado";
 
 const ImageEncryptor: React.FC<{
-  onClose: (imageData?: { image: string; hint: string; date: string ; extraCols: number; extraRows: number; }) => void;
+  onClose: (imageData?: {
+    image: string;
+    hint: string;
+    date: string;
+    extraCols: number;
+    extraRows: number;
+  }) => void;
 }> = ({ onClose }) => {
   // const [password, setPassword] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -40,7 +46,11 @@ const ImageEncryptor: React.FC<{
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
         try {
-          const { image: encryptedImage, extraRows : filasExtra, extraCols : columnasExtra} = await encryptImage(imageData, blockSize, password);
+          const {
+            image: encryptedImage,
+            extraRows: filasExtra,
+            extraCols: columnasExtra,
+          } = await encryptImage(imageData, blockSize, password);
 
           const outputCanvas = document.createElement("canvas");
           outputCanvas.width = encryptedImage.width;
@@ -61,7 +71,6 @@ const ImageEncryptor: React.FC<{
     reader.readAsDataURL(selectedImage);
   };
 
-
   function imageToJpegBlob(imageSrc: string, quality = 0.85): Promise<Blob> {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -76,10 +85,14 @@ const ImageEncryptor: React.FC<{
         if (!ctx) return reject("No se pudo obtener el contexto");
 
         ctx.drawImage(img, 0, 0);
-        canvas.toBlob((blob) => {
-          if (blob) resolve(blob);
-          else reject("Error al generar JPEG");
-        }, "image/jpeg", quality);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject("Error al generar JPEG");
+          },
+          "image/jpeg",
+          quality
+        );
       };
 
       img.onerror = () => reject("No se pudo cargar la imagen");
@@ -94,7 +107,6 @@ const ImageEncryptor: React.FC<{
       reader.readAsDataURL(blob);
     });
   }
-
 
   function downloadBlob(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob);
@@ -122,11 +134,12 @@ const ImageEncryptor: React.FC<{
     if (modifiedImage) {
       setIsLoading(true);
 
-      try {       
+      try {
         const blob = await imageToJpegBlob(modifiedImage, 0.85);
-        const imageFile = new File([blob], "modified_image.jpg", { type: "image/jpeg" });
+        const imageFile = new File([blob], "modified_image.jpg", {
+          type: "image/jpeg",
+        });
 
-        
         const formData = new FormData();
         formData.append("image", imageFile);
         formData.append("description", hint);
@@ -134,7 +147,6 @@ const ImageEncryptor: React.FC<{
         formData.append("extraCols", String(extraCols || 0));
         formData.append("extraRows", String(extraRows || 0));
 
-      try {
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/images/upload`,
           {
@@ -150,20 +162,24 @@ const ImageEncryptor: React.FC<{
           console.log("Image uploaded successfully!");
           const today = new Date().toISOString().split("T")[0];
           const base64JPEG = await blobToDataURL(blob);
-          onClose({ image: base64JPEG, hint, date: today, extraCols: extraCols, extraRows: extraRows});
+          onClose({
+            image: base64JPEG,
+            hint,
+            date: today,
+            extraCols: extraCols,
+            extraRows: extraRows,
+          });
         } else {
           console.error("Error uploading image:", response.statusText);
         }
 
         setIsLoading(false);
-        
       } catch (error) {
         console.error("Error uploading image:", error);
         setIsLoading(false);
       }
     }
   };
-
 
   return (
     <div
