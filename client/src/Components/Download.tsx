@@ -1,24 +1,23 @@
 import React, { useState } from "react";
 import { decryptImage } from "./cifrado";
+import { downloadBlob } from "./download_utils";
 
 type DownloadProps = {
   onClose: () => void;
+  hint: string;
   src: string;
-  hint : string;
-  password: string;
   blockSize: number;
   extraCols: number;
   extraRows: number;
 };
 
-const Download: React.FC<DownloadProps> = ({ onClose, hint, src, password, blockSize, extraCols, extraRows }) => {
+const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extraCols, extraRows }) => {
+  const [password, setPassword] = useState("");
   const [isDecrypting, setIsDecrypting] = useState(false);
+  const [decryptedSrc, setDecryptedSrc] = useState<string | null>(null);
+  const [downloadFormat, setDownloadFormat] = useState<"jpeg" | "png" | "gif">("jpeg");
 
-  const handleDownloadCifrada = async () => {
-    //TODO descarga de la imágen cifrada
-  };
-
-  const handleDownloadDescifrada = async () => {
+  const handleDecrypt = async () => {
     setIsDecrypting(true);
 
     try {
@@ -36,7 +35,13 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, password, block
         ctx.drawImage(img, 0, 0);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-        const { image: decryptedImage } = await decryptImage(imageData, blockSize, password, extraRows, extraCols);
+        const { image: decryptedImage } = await decryptImage(
+          imageData,
+          blockSize,
+          password,
+          extraRows,
+          extraCols
+        );
 
         const outputCanvas = document.createElement("canvas");
         outputCanvas.width = decryptedImage.width;
@@ -45,11 +50,7 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, password, block
         if (!outputCtx) return;
 
         outputCtx.putImageData(decryptedImage, 0, 0);
-        const link = document.createElement("a");
-        link.download = "imagen_descifrada_"+hint+".jpeg"; //sustituir por la notación ´someting${var}´, pero no me sale de momento
-        link.href = outputCanvas.toDataURL("image/jpeg", 0.85); //"image/jpeg",0.85
-        link.click();
-        
+        setDecryptedSrc(outputCanvas.toDataURL(`image/${downloadFormat}`));
         setIsDecrypting(false);
       };
     } catch (error) {
@@ -58,23 +59,80 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, password, block
     }
   };
 
+  const handleDownload = () => {
+    if (!decryptedSrc) return;
+
+    fetch(decryptedSrc)
+      .then((res) => res.blob())
+      .then((blob) => {
+        downloadBlob(blob, hint, downloadFormat);
+      });
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white p-4 rounded-xl shadow-lg" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="bg-white p-4 rounded-xl shadow-lg w-[400px]"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-xl font-bold mb-4">Descifrar y descargar la imagen</h2>
 
-        <img src={src} loading="lazy" className="bg-gray-700 h-32 w-60 rounded-xl mb-4" />
+        {/* Imagen cifrada */}
+        <img
+          src={src}
+          loading="lazy"
+          className="bg-gray-700 h-36 w-60 rounded-xl mb-4 object-cover"
+        />
 
-        <div className="flex flex-col gap-2">
+        {/* Contraseña */}
+        <label className="block font-semibold mb-1">Contraseña:</label>
+        <input
+          type="text"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="border rounded px-2 py-1 mb-4 w-full"
+          placeholder="Ingrese la clave"
+        />
 
-          <button
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
-            onClick={handleDownloadDescifrada}
-            disabled={isDecrypting}
-          >
-            {isDecrypting ? "Descifrando..." : "Descargar imagen descifrada"}
-          </button>
-        </div>
+        {/* Botón para descifrar */}
+        <button
+          onClick={handleDecrypt}
+          disabled={isDecrypting || !password}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full mb-4 disabled:opacity-50"
+        >
+          {isDecrypting ? "Descifrando..." : "Descifrar imagen"}
+        </button>
+
+        {/* Vista previa imagen descifrada */}
+        {decryptedSrc && (
+          <>
+            <h3 className="font-semibold mb-2">Vista previa:</h3>
+            <img
+              src={decryptedSrc}
+              className="bg-gray-200 h-36 w-60 rounded-xl mb-4 object-cover"
+            />
+
+            {/* Selección de formato */}
+            <label className="block font-semibold mb-1">Formato de descarga:</label>
+            <select
+              value={downloadFormat}
+              onChange={(e) => setDownloadFormat(e.target.value as "jpeg" | "png" | "gif")}
+              className="border rounded px-2 py-1 mb-4 w-full"
+            >
+              <option value="jpeg">JPEG</option>
+              <option value="png">PNG</option>
+              <option value="gif">GIF</option>
+            </select>
+
+            {/* Botón de descarga */}
+            <button
+              onClick={handleDownload}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
+            >
+              Descargar imagen descifrada
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

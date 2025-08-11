@@ -134,7 +134,6 @@ const ImageEncryptor: React.FC<{
         formData.append("extraCols", String(extraCols || 0));
         formData.append("extraRows", String(extraRows || 0));
 
-      try {
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/images/upload`,
           {

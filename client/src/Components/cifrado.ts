@@ -1,7 +1,7 @@
 export async function encryptImage(imageData: ImageData, blockSize: number, password: string, applyNoise = false) {
-    console.log("Block Size:", blockSize);
-    console.log("ImageData:", imageData);
-    console.log("Width x Height:", imageData.width, imageData.height);
+    //console.log("Block Size:", blockSize);
+    //console.log("ImageData:", imageData);
+    //console.log("Width x Height:", imageData.width, imageData.height);
     const t0 = performance.now();
   
     const { imageData: paddedImageData, extraCols, extraRows } = padImageData(imageData, blockSize);
@@ -9,18 +9,18 @@ export async function encryptImage(imageData: ImageData, blockSize: number, pass
     const widthInBlocks = Math.ceil(width / blockSize);
     const heightInBlocks = Math.ceil(height / blockSize);
     const totalBlocks = widthInBlocks * heightInBlocks;
-    console.log(totalBlocks)
+    //console.log(totalBlocks)
     const hashArray = await hashPassword(password);
-    console.log(hashArray)
+    //console.log(hashArray)
     const shiftPRNG = await createSecurePRNG(hashArray, 0);
     const channelPRNG = await createSecurePRNG(hashArray, totalBlocks );
     const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
     const noisePRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
-    //console.log("BloquesX:", blocksX, "BloquesY:", blocksY, "Total:", totalBlocks);
+    ////console.log("BloquesX:", blocksX, "BloquesY:", blocksY, "Total:", totalBlocks);
     const seed64 = hashArray.slice(0, 8).reduce((acc, val, i) => acc + (val << (i * 8)), 0);
     const permutation = generatePermutationWithPI(totalBlocks, seed64);
     //const permutation = generateDeterministicPermutation(totalBlocks, blockPRNG);
-    //console.log("Existe la permutación")
+    ////console.log("Existe la permutación")
     let resultImage = permuteBlocks(paddedImageData, blockSize, permutation);
     //console.oog("Hice la permutación")
     for (let by = 0; by < heightInBlocks; by++) {
@@ -45,9 +45,9 @@ export async function encryptImage(imageData: ImageData, blockSize: number, pass
   }
   
 export async function decryptImage(imageData: { width: any; height: any; data?: any; }, blockSize: number, password: any, extraRows: number, extraCols: number, applyNoise = false) {
-    console.log("Block Size:", blockSize);
-    console.log("ImageData:", imageData);
-    console.log("Width x Height:", imageData.width, imageData.height);
+    //console.log("Block Size:", blockSize);
+    //console.log("ImageData:", imageData);
+    //console.log("Width x Height:", imageData.width, imageData.height);
     const t0 = performance.now();
   
     const { width, height } = imageData;
@@ -61,7 +61,7 @@ export async function decryptImage(imageData: { width: any; height: any; data?: 
     const channelPRNG = await createSecurePRNG(hashArray, totalBlocks );
     const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
     const noisePRNG = await createSecurePRNG(hashArray, totalBlocks * 3);
-    //console.log("BloquesX:", blocksX, "BloquesY:", blocksY, "Total:", totalBlocks);
+    ////console.log("BloquesX:", blocksX, "BloquesY:", blocksY, "Total:", totalBlocks);
     //const permutation = generateDeterministicPermutation(totalBlocks, blockPRNG);
     const seed64 = hashArray.slice(0, 8).reduce((acc, val, i) => acc + (val << (i * 8)), 0);
     const permutation = generatePermutationWithPI(totalBlocks, seed64);
@@ -296,7 +296,7 @@ function createHashPRNG(hashArray: string | any[], offset = 0) {
    * Complejidad espacial: O(1) -> se modifica en sitio
    */
   async function permuteChannels(imageData: ImageData, blockSize: number, prng: { (): Promise<number>; (): Promise<number>; (): any; }, reverse: boolean) {
-    console.log("Ejecutando permutación de canales...");
+    //console.log("Ejecutando permutación de canales...");
     const { width, height, data } = imageData;
     const widthInBlocks = Math.ceil(width / blockSize);
     const heightInBlocks = Math.ceil(height / blockSize);
@@ -336,7 +336,7 @@ function createHashPRNG(hashArray: string | any[], offset = 0) {
         }
       }
     }
-    console.log("Acabé de permutar");
+    //console.log("Acabé de permutar");
     return new ImageData(data, width, height);
   }
   
@@ -346,7 +346,7 @@ function createHashPRNG(hashArray: string | any[], offset = 0) {
    * Complejidad espacial: O(1)
    */
   async function applyNegativeTransform(imageData: { data: any; width: number; height: ImageDataSettings | undefined; }, prng: () => any) {
-    console.log("Ejecutando transformaciones");
+    //console.log("Ejecutando transformaciones");
     const data = imageData.data;
     for (let i = 0; i < data.length; i += 4) {
       const useNegative = ( Math.floor(await prng() * 2 ) ) === 1;
@@ -356,7 +356,7 @@ function createHashPRNG(hashArray: string | any[], offset = 0) {
         data[i + 2] = 255 - data[i + 2];
       }
     }
-    console.log("Acabé de transformar");
+    //console.log("Acabé de transformar");
     return new ImageData(data, imageData.width, imageData.height);
   }
 
@@ -368,7 +368,7 @@ function createHashPRNG(hashArray: string | any[], offset = 0) {
  * @param {function} prng - Generador asíncrono que retorna float entre 0 y 1
  */
 async function applyBlockLevelNegativeTransform(imageData: ImageData, blockSize: number, prng: { (): Promise<number>; (): Promise<number>; (): any; }) {
-  console.log("transformando...")
+  //console.log("transformando...")
   const { width, height, data } = imageData;
   const blocksX = Math.ceil(width / blockSize);
   const blocksY = Math.ceil(height / blockSize);
@@ -393,7 +393,7 @@ async function applyBlockLevelNegativeTransform(imageData: ImageData, blockSize:
       }
     }
   }
-  console.log("Acabé de transformar")
+  //console.log("Acabé de transformar")
   return new ImageData(data, imageData.width, imageData.height);
 }
 

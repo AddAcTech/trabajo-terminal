@@ -25,7 +25,6 @@ function Image(image: ImageProps) {
                     onClose={handleCloseModal}
                     hint = {image.hint}
                     src={image.image}
-                    password={password}
                     blockSize={blockSize}
                     extraCols={image.extraCols}
                     extraRows={image.extraRows}
