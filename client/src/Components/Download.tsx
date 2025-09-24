@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { decryptImage } from "./cifrado";
+import { decryptImage, applyMedianFilter } from "./cifrado";
 import { downloadBlob } from "./download_utils";
 
 type DownloadProps = {
@@ -42,21 +42,38 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
           extraRows,
           extraCols
         );
-
-        const outputCanvas = document.createElement("canvas");
-        outputCanvas.width = decryptedImage.width;
-        outputCanvas.height = decryptedImage.height;
-        const outputCtx = outputCanvas.getContext("2d");
-        if (!outputCtx) return;
-
-        outputCtx.putImageData(decryptedImage, 0, 0);
-        setDecryptedSrc(outputCanvas.toDataURL(`image/${downloadFormat}`));
+        imageDataToSRCString( decryptedImage );
         setIsDecrypting(false);
       };
     } catch (error) {
       console.error("Error al descifrar:", error);
       setIsDecrypting(false);
     }
+  };
+
+   const handleCorrect = () => {
+    if (!decryptedSrc) return;
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = decryptedSrc;
+
+    img.onload = async () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const corrected = applyMedianFilter(imageData);
+
+      imageDataToSRCString(corrected);
+
+    }
+
+  
   };
 
   const handleDownload = () => {
@@ -68,6 +85,18 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
         downloadBlob(blob, hint, downloadFormat);
       });
   };
+
+  const imageDataToSRCString = (imageData : ImageData) => {
+    const tmpCanvas = document.createElement("canvas");
+    tmpCanvas.width = imageData.width;
+    tmpCanvas.height = imageData.height;
+    const tmpCtx = tmpCanvas.getContext("2d");
+    if (!tmpCtx) return;
+
+    tmpCtx.putImageData(imageData, 0, 0);
+    setDecryptedSrc(tmpCanvas.toDataURL(`image/${downloadFormat}`));
+  };
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50" onClick={onClose}>
@@ -87,7 +116,7 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
         {/* Contraseña */}
         <label className="block font-semibold mb-1">Contraseña:</label>
         <input
-          type="text"
+          type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="border rounded px-2 py-1 mb-4 w-full"
@@ -111,6 +140,13 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
               src={decryptedSrc}
               className="bg-gray-200 h-36 w-60 rounded-xl mb-4 object-cover"
             />
+
+            <button
+                className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
+                onClick={handleCorrect}
+              >
+                Corregir imagen
+            </button>
 
             {/* Selección de formato */}
             <label className="block font-semibold mb-1">Formato de descarga:</label>

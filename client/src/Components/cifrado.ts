@@ -95,6 +95,52 @@ export async function decryptImage(imageData: { width: any; height: any; data?: 
     };
   }
 
+/**
+ * Aplica un filtro de mediana 3x3 sobre un ImageData
+ * una función que busca reducir el impacto del descifradod e una imágen cifrada con pérdidas.
+ * Complejidad temporal: O(width * height * 9)
+ * Complejidad espacial: O(width * height)
+ */
+export function applyMedianFilter(imageData: ImageData): ImageData {
+  const { width, height, data } = imageData;
+  const output = new Uint8ClampedArray(data.length);
+
+  // Copiar alfa directamente (canal 4)
+  for (let i = 3; i < data.length; i += 4) {
+    output[i] = data[i];
+  }
+
+  const getIndex = (x: number, y: number) => (y * width + x) * 4;
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const rVals: number[] = [];
+      const gVals: number[] = [];
+      const bVals: number[] = [];
+
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const idx = getIndex(x + dx, y + dy);
+          rVals.push(data[idx]);
+          gVals.push(data[idx + 1]);
+          bVals.push(data[idx + 2]);
+        }
+      }
+
+      rVals.sort((a, b) => a - b);
+      gVals.sort((a, b) => a - b);
+      bVals.sort((a, b) => a - b);
+
+      const idx = getIndex(x, y);
+      output[idx] = rVals[4];     // mediana de 9 valores
+      output[idx + 1] = gVals[4];
+      output[idx + 2] = bVals[4];
+    }
+  }
+
+  return new ImageData(output, width, height);
+}
+
 
   async function hashPassword(password: string | undefined) {
     const encoder = new TextEncoder();
