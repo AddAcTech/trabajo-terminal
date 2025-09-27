@@ -28,7 +28,7 @@ const path = require('path');
 const { createCanvas, loadImage, ImageData } = require('canvas');
 const { performance } = require('perf_hooks'); // para performance.now()
 const glob = require('glob');
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+//const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 // Exponer globals para que crypto_lib (escrito para navegador) pueda usar ImageData / performance
 global.ImageData = ImageData;
@@ -232,7 +232,7 @@ function bitCorrectRatio(orig, dec) {
 }
 
 async function createCsv(outDir) {
-  const csvPath = path.join(outDir, 'metrics.csv');
+  const csvPath = path.join(outDir, 'resultados.csv');
   const writer = createCsvWriter({
     path: csvPath,
     header: [
@@ -269,7 +269,7 @@ async function processFolder(inputFolder, outFolder, password) {
 
   const files = glob.sync(`${inputFolder}/*.{png,jpg,jpeg,bmp,tiff}`);
   if (files.length === 0) {
-    console.error("❌ No se encontraron imágenes en", inputFolder);
+    console.error("No se encontraron imágenes en", inputFolder);
     return;
   }
   // Crear carpetas de salida
@@ -279,7 +279,7 @@ async function processFolder(inputFolder, outFolder, password) {
   await fs.ensureDir(histOut);
 
   const csvPath = path.join(outFolder, 'metrics.csv');
-  const csvWriter =  createCsv(csvPath);
+  //const csvWriter =  createCsv(csvPath);
   const records = [];
 
   for (const file of files) {
@@ -382,7 +382,20 @@ async function processFolder(inputFolder, outFolder, password) {
             histPath: path.relative(outFolder, histPath)
         });
 
-        await csvWriter.writeRecords(records);
+        //await csvWriter.writeRecords(records);
+        // --- Guardar CSV manualmente ---
+        if (records.length > 0) {
+            const headers = Object.keys(records[0]).join(",");
+            const rows = records.map(r =>
+            Object.values(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")
+        );
+        const csvContent = [headers, ...rows].join("\n");
+
+        await fs.writeFile(csvPath, csvContent, "utf8");
+        console.log(`\nProceso terminado. Métricas guardadas en: ${csvPath}`);
+        } else {
+            console.warn("\nNo se generaron registros, CSV vacío.");
+        }
       } catch (err) {
         console.error('Error en bloque', blockSize, 'imagen', base);
         console.error(err && err.stack ? err.stack : err);
