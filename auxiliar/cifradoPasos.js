@@ -653,23 +653,18 @@ function generatePermutationWithPI(n, seed64) {
 
     for (let i = 0; i < n; i++) {
       const mixed = (seed64 + i) * PI;
-      console.log((seed64 + i) + " x 3.1416 = " + mixed);
       const fractional = mixed - Math.floor(mixed); // parte decimal
-      console.log("\t"+fractional);
       A.push(fractional);
     }
     // Paso 2: construir coeficientes
     const coefficients = A.map(a => Math.floor(a * 1e12));
     //Valores del arreglo
-    console.log(coefficients); //Ya solo falta ser truncados por Fisher-Yates 
+    //console.log(coefficients); //Ya solo falta ser truncados por Fisher-Yates 
     // Paso 3: aplicar los coeficientes al arreglo base [0..n-1] usando Fisher-Yates modificado
     const perm = [...Array(n).keys()];
     for (let i = n - 1; i > 0; i--) {
       const j = coefficients[i] % (i + 1);
       [perm[i], perm[j]] = [perm[j], perm[i]];
-      console.log ("i: " + i + ", j: " + j)
-      console.log(perm);
     }
-    console.log(perm);
     return perm;
   }

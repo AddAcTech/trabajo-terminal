@@ -1,9 +1,9 @@
-async function encryptImage(imageData, blockSize, password, applyNoise = false) {
+
+export async function encryptImage(imageData, blockSize, password, applyNoise = false) {
     console.log("Block Size:", blockSize);
     console.log("ImageData:", imageData);
     console.log("Width x Height:", imageData.width, imageData.height);
     const t0 = performance.now();
-  
     const { imageData: paddedImageData, extraCols, extraRows } = padImageData(imageData, blockSize);
     const { width, height } = paddedImageData;
     const widthInBlocks = Math.ceil(width / blockSize);
@@ -42,11 +42,13 @@ async function encryptImage(imageData, blockSize, password, applyNoise = false) 
       image: resultImage,
       extraRows: extraRows,
       extraCols: extraCols,
-      time: ((t1 - t0) / 1000).toFixed(2)
+      time: ((t1 - t0) / 1000).toFixed(2),
+      totalBlock : (resultImage.width * resultImage.height) / (blockSize * blockSize),
+       
     };
   }
   
-async function decryptImage(imageData, blockSize, password, extraRows, extraCols, applyNoise = false) {
+export async function decryptImage(imageData, blockSize, password, extraRows, extraCols, applyNoise = false) {
     console.log("Block Size:", blockSize);
     console.log("ImageData:", imageData);
     console.log("Width x Height:", imageData.width, imageData.height);
@@ -299,7 +301,6 @@ function createHashPRNG(hashArray, offset = 0) {
    * Complejidad espacial: O(1) -> se modifica en sitio
    */
   async function permuteChannels(imageData, blockSize, prng, reverse) {
-    console.log("Ejecutando permutación de canales...");
     const { width, height, data } = imageData;
     const widthInBlocks = Math.ceil(width / blockSize);
     const heightInBlocks = Math.ceil(height / blockSize);
@@ -339,7 +340,6 @@ function createHashPRNG(hashArray, offset = 0) {
         }
       }
     }
-    console.log("Acabé de permutar");
     return new ImageData(data, width, height);
   }
   
@@ -349,7 +349,6 @@ function createHashPRNG(hashArray, offset = 0) {
    * Complejidad espacial: O(1)
    */
   async function applyNegativeTransform(imageData, prng) {
-    console.log("Ejecutando transformaciones");
     const data = imageData.data;
     for (let i = 0; i < data.length; i += 4) {
       const useNegative = ( Math.floor(await prng() * 2 ) ) === 1;
@@ -359,7 +358,6 @@ function createHashPRNG(hashArray, offset = 0) {
         data[i + 2] = 255 - data[i + 2];
       }
     }
-    console.log("Acabé de transformar");
     return new ImageData(data, imageData.width, imageData.height);
   }
 
@@ -371,7 +369,6 @@ function createHashPRNG(hashArray, offset = 0) {
  * @param {function} prng - Generador asíncrono que retorna float entre 0 y 1
  */
 async function applyBlockLevelNegativeTransform(imageData, blockSize, prng) {
-  console.log("transformando...")
   const { width, height, data } = imageData;
   const blocksX = Math.ceil(width / blockSize);
   const blocksY = Math.ceil(height / blockSize);
@@ -396,7 +393,6 @@ async function applyBlockLevelNegativeTransform(imageData, blockSize, prng) {
       }
     }
   }
-  console.log("Acabé de transformar")
   return new ImageData(data, imageData.width, imageData.height);
 }
 
