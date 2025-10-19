@@ -34,7 +34,6 @@ const glob = require('glob');
 global.ImageData = ImageData;
 global.performance = performance;
 
-// Ahora importa tu librería que contiene encryptImage/decryptImage
 const { encryptImage, decryptImage } = require('./cifrado.js');
 
 // Parámetros del pipeline
@@ -126,26 +125,26 @@ async function saveHistogramComparison(orig, enc, outPrefix) {
   const histO = histogramRGB(orig);
   const histE = histogramRGB(enc);
   const width = 800;
-  const height = 200;
+  const height = 250;
   const canvas = createCanvas(width, height * 3);
   const ctx = canvas.getContext('2d');
 
   function drawBar(channelName, histOrig, histEnc, yOffset) {
     const maxVal = Math.max(...histOrig, ...histEnc, 1);
     const barW = width / 256;
-    ctx.fillStyle = 'green';
+    ctx.fillStyle = 'white';
     ctx.fillRect(0, yOffset, width, height);
     for (let i = 0; i < 256; i++) {
       const hO = (histOrig[i] / maxVal) * (height - 30);
       const hE = (histEnc[i] / maxVal) * (height - 30);
-      ctx.fillStyle = 'rgba(150,150,150,0.5)';
+      ctx.fillStyle = 'rgba(50,255,50,0.5)';
       ctx.fillRect(i * barW, yOffset + (height - 10 - hO), barW, hO);
-      ctx.strokeStyle = 'blue';
+      ctx.strokeStyle = 'rgba(50,50,255,0.5)';
       ctx.strokeRect(i * barW, yOffset + (height - 10 - hE), barW, hE);
     }
     ctx.fillStyle = 'black';
     ctx.font = '16px sans-serif';
-    ctx.fillText(channelName + ' (orig = gris, enc = borde negro)', 8, yOffset + 18);
+    ctx.fillText(channelName + ' (original: Verde, cifrada: Azul)', 8, yOffset + 18);
   }
 
   drawBar('Red', histO.r, histE.r, 0);
