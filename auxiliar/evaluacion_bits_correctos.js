@@ -7,9 +7,9 @@ import { encryptImage, decryptImage } from "./cifrado.js"; // tus funciones ya d
 global.ImageData = ImageData; // requerido por las funciones de cifrado
 
 // === CONFIGURACIÓN ===
-const INPUT_DIR = "./test";
+const INPUT_DIR = "./entrada";
 const OUTPUT_DIR = "./res_bit_ratio";
-const CSV_PATH = path.join(OUTPUT_DIR, "resultados_iteraciones.csv");
+const CSV_PATH = path.join(OUTPUT_DIR, "resultados_umbral.csv");
 const PASSWORD = "p455w0rd-PL4C3H0LD3R";
 const blockSize = 16;
 const QUALITY = 0.85;
@@ -157,14 +157,27 @@ async function main() {
 
   await writeCSV(results);
 
-  const avgLines = ["iteration,avg_bitCorrectRatio"];
+  const avgLines = ["iteracion,promedio_bitCorrectRatio"];
   for (let i = 0; i < iterationStats.length; i++) {
     const vals = iterationStats[i];
     const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
     avgLines.push(`${i + 1},${avg.toFixed(6)}`);
   }
-  fs.writeFileSync("promedio_iteraciones.csv", avgLines.join("\n"), "utf8");
+  fs.writeFileSync(path.join(OUTPUT_DIR,"promedio_iteraciones.csv"), avgLines.join("\n"), "utf8");
 
+  // === MENSAJE FINAL ESTILIZADO ===
+  const boxTop = "╔" + "═".repeat(55) + "╗";
+  const boxBottom = "╚" + "═".repeat(55) + "╝";
+  const message = `
+  ${boxTop}
+  ║${" ".repeat(16)}✅ PROCESO COMPLETADO ✅${" ".repeat(15)}║
+  ║${" ".repeat(7)}Los resultados han sido generados con éxito${" ".repeat(5)}║
+  ║${" ".repeat(11)}Archivos creados: resultados_umbral.csv${" ".repeat(5)}║
+  ║${" ".repeat(11)}y promedio_iteraciones.csv${" ".repeat(18)}║
+  ${boxBottom}
+  `;
+
+  console.log("\x1b[36m%s\x1b[0m", message); // color cian brillante
 }
 
 await main();

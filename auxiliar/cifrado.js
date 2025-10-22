@@ -1,7 +1,7 @@
 
 export async function encryptImage(imageData, blockSize, password, applyNoise = false) {
     console.log("Block Size:", blockSize);
-    console.log("ImageData:", imageData);
+    //console.log("ImageData:", imageData);
     console.log("Width x Height:", imageData.width, imageData.height);
     const t0 = performance.now();
     const { imageData: paddedImageData, extraCols, extraRows } = padImageData(imageData, blockSize);
@@ -9,9 +9,9 @@ export async function encryptImage(imageData, blockSize, password, applyNoise = 
     const widthInBlocks = Math.ceil(width / blockSize);
     const heightInBlocks = Math.ceil(height / blockSize);
     const totalBlocks = widthInBlocks * heightInBlocks;
-    console.log(totalBlocks)
+    //console.log(totalBlocks)
     const hashArray = await hashPassword(password);
-    console.log(hashArray)
+    //console.log(hashArray)
     const shiftPRNG = await createSecurePRNG(hashArray, 0);
     const channelPRNG = await createSecurePRNG(hashArray, totalBlocks );
     const negPRNG = await createSecurePRNG(hashArray, totalBlocks * 2);
@@ -50,7 +50,7 @@ export async function encryptImage(imageData, blockSize, password, applyNoise = 
   
 export async function decryptImage(imageData, blockSize, password, extraRows, extraCols, applyNoise = false) {
     console.log("Block Size:", blockSize);
-    console.log("ImageData:", imageData);
+    //console.log("ImageData:", imageData);
     console.log("Width x Height:", imageData.width, imageData.height);
     const t0 = performance.now();
   
