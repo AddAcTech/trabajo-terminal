@@ -10,7 +10,6 @@ export type ImageProps = {
   extraRows: number;
 };
 
-const password = "p455w0rd-PL4C3H0LD3R";
 const blockSize = 8;
 
 function Image(image: ImageProps) {

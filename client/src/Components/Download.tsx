@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { decryptImage } from "./cifrado";
-import { downloadBlob } from "./download_utils";
+import { decryptImage } from "../lib/cifrado";
+import { downloadBlob } from "../lib/download_utils";
 
 type DownloadProps = {
   onClose: () => void;

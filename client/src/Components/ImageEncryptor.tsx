@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Spinner from "./Spinner";
-import { encryptImage } from './cifrado'; 
+import { encryptImage } from '../lib/cifrado'; 
 
 const ImageEncryptor: React.FC<{
   onClose: (imageData?: { image: string; hint: string; date: string ; extraCols: number; extraRows: number; }) => void;
