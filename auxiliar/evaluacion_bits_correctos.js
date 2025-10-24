@@ -7,7 +7,7 @@ import { encryptImage, decryptImage } from "./cifrado.js"; // tus funciones ya d
 global.ImageData = ImageData; // requerido por las funciones de cifrado
 
 // === CONFIGURACIÓN ===
-const INPUT_DIR = "./entrada";
+const INPUT_DIR = "./test";
 const OUTPUT_DIR = "./res_bit_ratio";
 const CSV_PATH = path.join(OUTPUT_DIR, "resultados_umbral.csv");
 const PASSWORD = "p455w0rd-PL4C3H0LD3R";
@@ -17,7 +17,7 @@ const max_iterations = 10;
 
 const BCR_THRESHOLDS = [0.8, 0.7, 0.6, 0.5]; // 80%, 50%, 30%
 
-const useDynamicKey = true; //Para comprobar si el patrón se repite al cambiar la clave
+const useDynamicKey = false; //Para comprobar si el patrón se repite al cambiar la clave
 
 await fs.ensureDir(OUTPUT_DIR);
 
@@ -67,7 +67,7 @@ async function writeCSV(records) {
     "BCR alcanzado"
   ];
   const csv = [headers.join(",")].concat(
-    records.map(r => [r.image, r.blockSize, r.threshold, r.iterations, r.bcr.toFixed(4)].join(","))
+    records.map(r => [r.image, r.threshold, r.iterations, r.bcr.toFixed(4)].join(","))
   );
   await fs.writeFile(CSV_PATH, csv.join("\n"), "utf8");
   console.log(`✅ CSV guardado en: ${CSV_PATH}`);
@@ -135,9 +135,9 @@ async function main() {
         // --- Preparar siguiente iteración ---
         current = dec.image;
 
-        //si es la ultima
-        if (iteration >= max_iterations ){
-          const decPath = path.join(OUTPUT_DIR, `${path.parse(imageName).name}_b${blockSize}_LIMITE.jpg`);
+        //si es multiplo de la mitad, en este caso 5 y 10
+        if (iteration % (max_iterations / 2) == 0 ){
+          const decPath = path.join(OUTPUT_DIR, `${path.parse(imageName).name}_CHECKPOINT_${iteration}.jpg`);
           await saveImageDataAsJPEG(dec.image, decPath, 1.0);
           results.push({
               image: imageName,

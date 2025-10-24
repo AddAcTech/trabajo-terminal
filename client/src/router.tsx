@@ -9,6 +9,7 @@ import DefaultLayout from "./Pages/App/DefaultLayout";
 import Galery from "./Pages/App/Galery";
 import Settings from "./Pages/App/Settings";
 import SignUp from "./Pages/Sessions/SignUp";
+import MasterKey from "./Pages/App/MasterKey";
 // import Si from "./Components/Si";
 
 const router = createBrowserRouter([
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
       {
         path: "/settings",
         element: <Settings />,
+      },
+      {
+        path: "/clave-maestra",
+        element: <MasterKey />,
       },
       // {
       //   path: "/encrypt",

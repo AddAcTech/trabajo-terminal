@@ -5,6 +5,9 @@ import ImageEncryptor from "../../Components/ImageEncryptor";
 import { toast } from "react-toastify";
 import { SortBy, SortOrder, sortImages } from "../../lib/sortUtils";
 import { TbSortAscending2, TbSortDescending2 } from "react-icons/tb";
+import { useGlobal } from "../../context/GlobalContext";
+import { useNavigate } from "react-router-dom";
+import AnuncioRedireccion from "../../Components/AnuncioRedireccion";
 
 function Galery() {
   type Image = {
@@ -19,8 +22,20 @@ function Galery() {
     extraRows: number;
   };
 
+  //variables del galery
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [myImages, setMyImages] = useState<ImageProps[]>([]);
+
+  const navigate = useNavigate();
+  const { claveMaestra, isExpired } = useGlobal(); //para manipular la llave maestra
+  
+   const handleRedirect = () => {
+      // Si no hay valor global, redirigir
+      navigate("/clave-maestra");
+   };
+
+  const showOverlay = !claveMaestra || isExpired;
+  
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = (imageData?: {
@@ -29,7 +44,6 @@ function Galery() {
     date: string;
     extraCols: number;
     extraRows: number;
-
   }) => {
     setIsModalOpen(false);
     if (imageData) {
@@ -37,6 +51,7 @@ function Galery() {
     }
   };
 
+  //funcion del galery para recuperar las imágenes
   useEffect(() => {
     try {
       const getImages = async () => {
@@ -100,6 +115,12 @@ function Galery() {
 
   return (
     <div className="relative">
+      {/* Pop - up cuando se necesita */}
+
+      {showOverlay && (
+        <AnuncioRedireccion/>
+      )}
+
       <div className="flex justify-between items-center bg-neutral-900 text-white px-4 py-3 rounded-lg shadow-md">
         <button
         className="bg-neutral-700 text-white py-2 px-4 mb-2 rounded-lg hover:bg-neutral-500 mt-4 transition-all"
@@ -128,10 +149,10 @@ function Galery() {
       
       <div className="flex flex-wrap justify-between gap-4 pt-2">
         {myImages.map((image, index) => (
-          <Image key={index} {...image} />
+          <Image key={index} image={image} claveMaestra={claveMaestra}  />
         ))}
       </div>
-      {isModalOpen && <ImageEncryptor onClose={handleCloseModal} />}
+      {isModalOpen && <ImageEncryptor onClose={handleCloseModal} claveMaestra={claveMaestra}/>}
     </div>
   );
 }

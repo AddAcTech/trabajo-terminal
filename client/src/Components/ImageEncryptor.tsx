@@ -3,8 +3,10 @@ import Spinner from "./Spinner";
 import { encryptImage } from '../lib/cifrado'; 
 
 const ImageEncryptor: React.FC<{
-  onClose: (imageData?: { image: string; hint: string; date: string ; extraCols: number; extraRows: number; }) => void;
-}> = ({ onClose }) => {
+  onClose: (imageData?: { image: string; hint: string; date: string ; extraCols: number; extraRows: number;}
+  ) => void,
+   claveMaestra : string | null 
+}> = ({ onClose, claveMaestra }) => {
   // const [password, setPassword] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [modifiedImage, setModifiedImage] = useState<string | null>(null);
@@ -17,10 +19,13 @@ const ImageEncryptor: React.FC<{
     setSelectedImage(file);
   };
 
+  if(!claveMaestra){
+    return
+  }
+  const claveVerificada : string = claveMaestra;
+
   const modifyImage = async () => {
     if (!selectedImage) return;
-
-    const password = "p455w0rd-PL4C3H0LD3R";
     const blockSize = 8;
 
     const reader = new FileReader();
@@ -40,7 +45,7 @@ const ImageEncryptor: React.FC<{
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
         try {
-          const { image: encryptedImage, extraRows : filasExtra, extraCols : columnasExtra} = await encryptImage(imageData, blockSize, password);
+          const { image: encryptedImage, extraRows : filasExtra, extraCols : columnasExtra} = await encryptImage(imageData, blockSize, claveVerificada);
 
           const outputCanvas = document.createElement("canvas");
           outputCanvas.width = encryptedImage.width;
@@ -146,12 +151,12 @@ const ImageEncryptor: React.FC<{
         );
 
         if (response.ok) {
-          console.log("Image uploaded successfully!");
+          console.log("Imagen subida correctamente");
           const today = new Date().toISOString().split("T")[0];
           const base64JPEG = await blobToDataURL(blob);
           onClose({ image: base64JPEG, hint, date: today, extraCols: extraCols, extraRows: extraRows});
         } else {
-          console.error("Error uploading image:", response.statusText);
+          console.error("Ha ocurrido un erro al subir la imagen:", response.statusText);
         }
 
         setIsLoading(false);

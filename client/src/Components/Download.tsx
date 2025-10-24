@@ -9,13 +9,18 @@ type DownloadProps = {
   blockSize: number;
   extraCols: number;
   extraRows: number;
+  claveMaestra : string | null;
 };
 
-const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extraCols, extraRows }) => {
-  const [password, setPassword] = useState("");
+const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extraCols, extraRows, claveMaestra }) => {
+  //const [password, setPassword] = useState("");
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [decryptedSrc, setDecryptedSrc] = useState<string | null>(null);
   const [downloadFormat, setDownloadFormat] = useState<"jpeg" | "png" | "gif">("jpeg");
+
+  if(!claveMaestra){
+    return 
+  }
 
   const handleDecrypt = async () => {
     setIsDecrypting(true);
@@ -38,7 +43,7 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
         const { image: decryptedImage } = await decryptImage(
           imageData,
           blockSize,
-          password,
+          claveMaestra,
           extraRows,
           extraCols
         );
@@ -84,20 +89,10 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
           className="bg-gray-700 h-36 w-60 rounded-xl mb-4 object-cover"
         />
 
-        {/* Contraseña */}
-        <label className="block font-semibold mb-1">Contraseña:</label>
-        <input
-          type="text"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border rounded px-2 py-1 mb-4 w-full"
-          placeholder="Ingrese la clave"
-        />
-
         {/* Botón para descifrar */}
         <button
           onClick={handleDecrypt}
-          disabled={isDecrypting || !password}
+          disabled={isDecrypting}
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full mb-4 disabled:opacity-50"
         >
           {isDecrypting ? "Descifrando..." : "Descifrar imagen"}
