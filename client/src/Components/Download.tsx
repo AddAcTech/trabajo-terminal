@@ -77,23 +77,23 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="bg-white p-4 rounded-xl shadow-lg w-[400px]"
+        className="bg-white p-4 rounded-xl shadow-lg w-[400px] items-center justify-center"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-xl font-bold mb-4">Descifrar y descargar la imagen</h2>
+        <h2 className="text-xl font-bold mb-4 text-center">Descifre y descargue su imagen</h2>
 
         {/* Imagen cifrada */}
         <img
           src={src}
           loading="lazy"
-          className="bg-gray-700 h-36 w-60 rounded-xl mb-4 object-cover"
+          className="bg-gray-700 h-36 w-70 rounded-xl mb-4 object-cover mx-auto"
         />
 
         {/* Botón para descifrar */}
         <button
           onClick={handleDecrypt}
           disabled={isDecrypting}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full mb-4 disabled:opacity-50"
+          className="sessionsButton mb-4 disabled:opacity-50"
         >
           {isDecrypting ? "Descifrando..." : "Descifrar imagen"}
         </button>
@@ -104,7 +104,7 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
             <h3 className="font-semibold mb-2">Vista previa:</h3>
             <img
               src={decryptedSrc}
-              className="bg-gray-200 h-36 w-60 rounded-xl mb-4 object-cover"
+              className="bg-gray-200 h-36 w-70 rounded-xl mb-4 object-cover mx-auto"
             />
 
             {/* Selección de formato */}
@@ -122,7 +122,7 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
             {/* Botón de descarga */}
             <button
               onClick={handleDownload}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
+              className="sessionsButton"
             >
               Descargar imagen descifrada
             </button>

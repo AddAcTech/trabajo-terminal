@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import { SortBy, SortOrder, sortImages } from "../../lib/sortUtils";
 import { TbSortAscending2, TbSortDescending2 } from "react-icons/tb";
 import { useGlobal } from "../../context/GlobalContext";
-import { useNavigate } from "react-router-dom";
 import AnuncioRedireccion from "../../Components/AnuncioRedireccion";
 
 function Galery() {
@@ -26,13 +25,8 @@ function Galery() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [myImages, setMyImages] = useState<ImageProps[]>([]);
 
-  const navigate = useNavigate();
   const { claveMaestra, isExpired } = useGlobal(); //para manipular la llave maestra
   
-   const handleRedirect = () => {
-      // Si no hay valor global, redirigir
-      navigate("/clave-maestra");
-   };
 
   const showOverlay = !claveMaestra || isExpired;
   

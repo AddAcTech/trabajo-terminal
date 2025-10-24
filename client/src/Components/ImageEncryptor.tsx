@@ -178,7 +178,7 @@ const ImageEncryptor: React.FC<{
         className="bg-white p-7 rounded-xl shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <h1 className="text-4xl font-bold mb-6 text-center">
+        <h1 className="text-4xl font-bold mb-6 text-center w-full">
           Cifrado de imagen
         </h1>
         <div className="max-w-sm mx-auto">

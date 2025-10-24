@@ -21,7 +21,8 @@ export default function MasterKey() {
 
   return (
     <div className="flex flex-col justify-center items-center text-black">
-      <h1 className="text-3xl mb-6">Configura tu llave global 🔐</h1>
+      <h1 className="text-3xl mb-6">Establece tu clave global</h1>
+      <h3 className="text-1xl mb-6 italic">Vigente durante esta sesión</h3>
       <form onSubmit={handleSubmit} className="flex gap-3">
         <input
           type="text"
@@ -32,7 +33,7 @@ export default function MasterKey() {
         />
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-md text-gray-200"
+          className="sessionsButton"
         >
           Guardar
         </button>
