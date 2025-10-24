@@ -41,7 +41,7 @@ function Login() {
       const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(responseData.error || "Login failed");
+        throw new Error(responseData.error || "Usuario y/o contraseña ingresados son incorrectos");
       }
 
       if (responseData.token) {
@@ -49,10 +49,10 @@ function Login() {
       }
 
       // Redirect to gallery page after successful login
-      toast.success("Succesfully logged in");
+      toast.success("Inicio de sesión exitoso");
       navigate("/galery");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "An error occurred");
+      toast.error(err instanceof Error ? err.message : "Ha ocurrido un error interno");
     } finally {
       setLoading(false);
     }

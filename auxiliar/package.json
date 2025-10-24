@@ -1,0 +1,21 @@
+{
+  "name": "auxiliar",
+  "version": "1.0.0",
+  "description": "Codigo auxiliar para probar el cifradoy y descifrado, donde se realiza el código y se prepara para ser pasado al proyecto bueno al final",
+  "main": "evaluacion_cifrado.js",
+  "scripts": {
+    "test": "test_cifrado"
+  },
+  "keywords": [
+    "cifrado"
+  ],
+  "author": "Armando Jarillo",
+  "license": "ISC",
+  "dependencies": {
+    "canvas": "^3.2.0",
+    "csv-writer": "^1.6.0",
+    "fs-extra": "^11.3.2",
+    "glob": "^11.0.3",
+    "sharp": "^0.34.4"
+  }
+}

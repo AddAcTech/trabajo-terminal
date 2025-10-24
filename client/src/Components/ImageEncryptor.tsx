@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Spinner from "./Spinner";
-import { encryptImage } from "./cifrado";
+import { encryptImage } from '../lib/cifrado'; 
 
 const ImageEncryptor: React.FC<{
   onClose: (imageData?: {
@@ -9,8 +9,10 @@ const ImageEncryptor: React.FC<{
     date: string;
     extraCols: number;
     extraRows: number;
-  }) => void;
-}> = ({ onClose }) => {
+ }
+  ) => void,
+   claveMaestra : string | null 
+}> = ({ onClose, claveMaestra }) => {
   // const [password, setPassword] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [modifiedImage, setModifiedImage] = useState<string | null>(null);
@@ -23,10 +25,13 @@ const ImageEncryptor: React.FC<{
     setSelectedImage(file);
   };
 
+  if(!claveMaestra){
+    return
+  }
+  const claveVerificada : string = claveMaestra;
+
   const modifyImage = async () => {
     if (!selectedImage) return;
-
-    const password = "p455w0rd-PL4C3H0LD3R";
     const blockSize = 8;
 
     const reader = new FileReader();
@@ -50,7 +55,7 @@ const ImageEncryptor: React.FC<{
             image: encryptedImage,
             extraRows: filasExtra,
             extraCols: columnasExtra,
-          } = await encryptImage(imageData, blockSize, password);
+          } = await encryptImage(imageData, blockSize, claveVerificada);
 
           const outputCanvas = document.createElement("canvas");
           outputCanvas.width = encryptedImage.width;
@@ -159,7 +164,7 @@ const ImageEncryptor: React.FC<{
         );
 
         if (response.ok) {
-          console.log("Image uploaded successfully!");
+          console.log("Imagen subida correctamente");
           const today = new Date().toISOString().split("T")[0];
           const base64JPEG = await blobToDataURL(blob);
           onClose({
@@ -170,7 +175,7 @@ const ImageEncryptor: React.FC<{
             extraRows: extraRows,
           });
         } else {
-          console.error("Error uploading image:", response.statusText);
+          console.error("Ha ocurrido un erro al subir la imagen:", response.statusText);
         }
 
         setIsLoading(false);
@@ -190,7 +195,7 @@ const ImageEncryptor: React.FC<{
         className="bg-white p-7 rounded-xl shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <h1 className="text-4xl font-bold mb-6 text-center">
+        <h1 className="text-4xl font-bold mb-6 text-center w-full">
           Cifrado de imagen
         </h1>
         <div className="max-w-sm mx-auto">

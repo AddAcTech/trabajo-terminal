@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BsDownload } from "react-icons/bs";
 import Download from "./Download";
 
+//el cuerpo de una imágen, traida de la base de datos
 export type ImageProps = {
   date: string;
   hint: string;
@@ -10,10 +11,9 @@ export type ImageProps = {
   extraRows: number;
 };
 
-const password = "p455w0rd-PL4C3H0LD3R";
 const blockSize = 8;
 
-function Image(image: ImageProps) {
+function Image( {image, claveMaestra} : { image: ImageProps, claveMaestra : string | null }  ) {
   const [download, setDownload] = useState(false);
 
   const handleOpenModal = () => setDownload(true);
@@ -25,10 +25,10 @@ function Image(image: ImageProps) {
                     onClose={handleCloseModal}
                     hint = {image.hint}
                     src={image.image}
-                    password={password}
                     blockSize={blockSize}
                     extraCols={image.extraCols}
                     extraRows={image.extraRows}
+                    claveMaestra={claveMaestra}
                   />}
       <button className="self-end cursor-pointer" onClick={handleOpenModal}>
         <BsDownload />

@@ -1,5 +1,7 @@
 function NotFound() {
-  return <div>NotFound</div>;
+  return <div>UPPS!<br/>
+        Página no encontrada
+  </div>;
 }
 
 export default NotFound;
