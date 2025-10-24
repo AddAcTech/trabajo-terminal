@@ -6,44 +6,29 @@ type DownloadProps = {
   onClose: () => void;
   hint: string;
   src: string;
-<<<<<<< HEAD
-  hint: string;
-  password: string;
-=======
->>>>>>> clave_maestra
   blockSize: number;
   extraCols: number;
   extraRows: number;
   claveMaestra : string | null;
 };
 
-<<<<<<< HEAD
 const Download: React.FC<DownloadProps> = ({
   onClose,
   hint,
   src,
-  password,
+ 
   blockSize,
   extraCols,
-  extraRows,
+  extraRows, claveMaestra,
 }) => {
-=======
-const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extraCols, extraRows, claveMaestra }) => {
   //const [password, setPassword] = useState("");
->>>>>>> clave_maestra
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [decryptedSrc, setDecryptedSrc] = useState<string | null>(null);
   const [downloadFormat, setDownloadFormat] = useState<"jpeg" | "png" | "gif">("jpeg");
 
-<<<<<<< HEAD
-  // const handleDownloadCifrada = async () => {
-  //   //TODO descarga de la imágen cifrada
-  // };
-=======
   if(!claveMaestra){
     return 
   }
->>>>>>> clave_maestra
 
   const handleDecrypt = async () => {
     setIsDecrypting(true);
@@ -66,11 +51,7 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
         const { image: decryptedImage } = await decryptImage(
           imageData,
           blockSize,
-<<<<<<< HEAD
-          password,
-=======
           claveMaestra,
->>>>>>> clave_maestra
           extraRows,
           extraCols
         );
@@ -82,15 +63,7 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
         if (!outputCtx) return;
 
         outputCtx.putImageData(decryptedImage, 0, 0);
-<<<<<<< HEAD
-        const link = document.createElement("a");
-        link.download = "imagen_descifrada_" + hint + ".jpeg"; //sustituir por la notación ´someting${var}´, pero no me sale de momento
-        link.href = outputCanvas.toDataURL("image/jpeg", 0.85); //"image/jpeg",0.85
-        link.click();
-
-=======
         setDecryptedSrc(outputCanvas.toDataURL(`image/${downloadFormat}`));
->>>>>>> clave_maestra
         setIsDecrypting(false);
       };
     } catch (error) {
@@ -110,41 +83,20 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
   };
 
   return (
-<<<<<<< HEAD
     <div
       className="fixed inset-0 flex items-center justify-center bg-black/50"
       onClick={onClose}
     >
       <div
-        className="bg-white p-4 rounded-xl shadow-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-xl font-bold mb-4">
-          Descifrar y descargar la imagen
-        </h2>
-
-        <img
-          src={src}
-          loading="lazy"
-          className="bg-gray-700 h-32 w-60 rounded-xl mb-4"
-        />
-
-        <div className="flex flex-col gap-2">
-          <button
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
-            onClick={handleDownloadDescifrada}
-            disabled={isDecrypting}
-          >
-            {isDecrypting ? "Descifrando..." : "Descargar imagen descifrada"}
-          </button>
-        </div>
-=======
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div
+       
         className="bg-white p-4 rounded-xl shadow-lg w-[400px] items-center justify-center"
+       
         onClick={(e) => e.stopPropagation()}
+      
       >
-        <h2 className="text-xl font-bold mb-4 text-center">Descifre y descargue su imagen</h2>
+        <h2 className="text-xl font-bold mb-4 text-center">
+          Descifre y descargue su imagen
+        </h2>
 
         {/* Imagen cifrada */}
         <img
@@ -192,7 +144,6 @@ const Download: React.FC<DownloadProps> = ({ onClose, hint, src, blockSize, extr
             </button>
           </>
         )}
->>>>>>> clave_maestra
       </div>
     </div>
   );
