@@ -25,11 +25,15 @@ function Galery() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [myImages, setMyImages] = useState<ImageProps[]>([]);
 
+  // handler para eliminar una imagen localmente cuando el servidor confirma el borrado
+  const handleImageDeleted = (id: number) => {
+    setMyImages((prev) => prev.filter((img) => img.id !== id));
+    toast.success("Imagen eliminada");
+  };
+
   const { claveMaestra, isExpired } = useGlobal(); //para manipular la llave maestra
-  
 
   const showOverlay = !claveMaestra || isExpired;
-  
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = (imageData?: {
@@ -50,7 +54,7 @@ function Galery() {
     try {
       const getImages = async () => {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/images/images`,
+          `${import.meta.env.VITE_API_URL}/images/getAll`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -60,10 +64,12 @@ function Galery() {
         const data = await response.json();
         const images: ImageProps[] = data.map((image: Image) => ({
           date: image.createdAt,
+          publicId: image.publicId,
+          id: image.id,
           hint: image.title,
           image: image.url,
           extraCols: image.extraCols,
-          extraRows: image.extraRows
+          extraRows: image.extraRows,
         }));
         setMyImages(images);
       };
@@ -90,9 +96,10 @@ function Galery() {
 
   // Cambia ascendente/descendente
   const toggleSortOrder = () => {
-    setSortOrder((prev) => (prev === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC));
+    setSortOrder((prev) =>
+      prev === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC
+    );
   };
-
 
   //preservar al recargar la página, tal vez se quite
   useEffect(() => {
@@ -111,18 +118,15 @@ function Galery() {
     <div className="relative">
       {/* Pop - up cuando se necesita */}
 
-      {showOverlay && (
-        <AnuncioRedireccion/>
-      )}
+      {showOverlay && <AnuncioRedireccion />}
 
-      <div className="flex justify-between items-center bg-neutral-900 text-white px-4 py-3 rounded-lg shadow-md">
+      <div className="flex gap-2 justify-between items-center bg-neutral-900 text-white px-4 py-3 rounded-lg shadow-md">
         <button
-        className="bg-neutral-700 text-white py-2 px-4 mb-2 rounded-lg hover:bg-neutral-500 mt-4 transition-all"
-        onClick={handleOpenModal}
+          className="bg-neutral-700 text-white py-2 px-4 rounded-lg hover:bg-neutral-500 transition-all"
+          onClick={handleOpenModal}
         >
           Subir nueva imagen
         </button>
-        <div className="flex-1" /> {/* Espacio vacío */}
         <div className="flex gap-2">
           <button
             onClick={toggleSortType}
@@ -133,20 +137,35 @@ function Galery() {
           <button
             onClick={toggleSortOrder}
             className="bg-neutral-700 hover:bg-neutral-500 px-3 py-2 rounded-md flex items-center justify-center text-lg transition-all"
-            aria-label={sortOrder === SortOrder.ASC ? "Ascendente" : "Descendente"}
+            aria-label={
+              sortOrder === SortOrder.ASC ? "Ascendente" : "Descendente"
+            }
           >
-            {sortOrder === SortOrder.ASC ? <TbSortAscending2 /> : <TbSortDescending2 />}
+            {sortOrder === SortOrder.ASC ? (
+              <TbSortAscending2 />
+            ) : (
+              <TbSortDescending2 />
+            )}
           </button>
         </div>
       </div>
 
-      
       <div className="flex flex-wrap justify-between gap-4 pt-2">
-        {myImages.map((image, index) => (
-          <Image key={index} image={image} claveMaestra={claveMaestra}  />
+        {myImages.map((image) => (
+          <Image
+            key={image.id}
+            image={image}
+            claveMaestra={claveMaestra}
+            onDeleted={handleImageDeleted}
+          />
         ))}
       </div>
-      {isModalOpen && <ImageEncryptor onClose={handleCloseModal} claveMaestra={claveMaestra}/>}
+      {isModalOpen && (
+        <ImageEncryptor
+          onClose={handleCloseModal}
+          claveMaestra={claveMaestra}
+        />
+      )}
     </div>
   );
 }

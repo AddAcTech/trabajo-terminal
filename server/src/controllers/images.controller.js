@@ -1,4 +1,4 @@
-import cloudinary from "cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 import db from "../../models/index.js";
 
 // Configure Cloudinary
@@ -53,6 +53,7 @@ export const storeImage = async (req, res) => {
       message: "Image uploaded successfully",
       image: {
         id: image.id,
+        publicId: image.publicId,
         url: image.url,
         title: image.title,
         userId: image.userId,
@@ -64,12 +65,46 @@ export const storeImage = async (req, res) => {
   }
 };
 
+export const deleteImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const image = await db.Image.findOne({ where: { id } });
+
+    if (!image) {
+      return res.status(404).json({ error: "Image not found" });
+    }
+
+    const destroyResult = await cloudinary.uploader.destroy(image.publicId, {
+      resource_type: "image",
+      invalidate: true,
+    });
+    if (
+      destroyResult &&
+      (destroyResult.result === "ok" || destroyResult.result === "not found")
+    ) {
+      await image.destroy();
+      return res.status(204).send();
+    } else {
+      console.error("Cloudinary failed to delete image:", destroyResult);
+      return res
+        .status(500)
+        .json({ error: "Failed to delete image from Cloudinary" });
+    }
+  } catch (error) {
+    console.error("Error deleting image:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 export const getImages = async (req, res) => {
   try {
-    const images = await db.Image.findAll();
+    const images = await db.Image.findAll({
+      where: {
+        userId: req.user.userId,
+      },
+    });
     res.json(images);
   } catch (error) {
-    console.error("Error fetching images:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
