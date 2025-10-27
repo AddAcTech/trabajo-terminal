@@ -84,8 +84,8 @@ function Galery() {
   }, []);
 
   //ordenar las imgenes por fecha subida o por nombre, de forma ascendente o descentente
-  const [sortBy, setSortBy] = useState(SortBy.HINT);
-  const [sortOrder, setSortOrder] = useState(SortOrder.ASC);
+  const [sortBy, setSortBy] = useState(SortBy.DATE);
+  const [sortOrder, setSortOrder] = useState(SortOrder.DESC);
 
   // Aplica automáticamente el orden al cambiar sortBy o sortOrder
   useEffect(() => {
@@ -118,13 +118,26 @@ function Galery() {
     if (savedOrder) setSortOrder(savedOrder);
   }, []);
 
+  //Manipulación de la barra de herramientas
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="relative">
       {/* Pop - up cuando se necesita */}
 
       {showOverlay && <AnuncioRedireccion />}
 
-      <div className="flex gap-2 justify-between items-center bg-neutral-900 text-white px-4 py-3 rounded-lg shadow-md">
+      <div className={`flex fixed w-17/18 gap-2 justify-between items-center bg-neutral-900 text-white px-4 py-3 mr-1 rounded-lg shadow-md transition-all duration-300
+           ${isScrolled
+            ? "bg-neutral-900/70 backdrop-blur-md"
+            : "bg-neutral-900"}`}>
         <button
           className="bg-neutral-700 text-white py-2 px-4 rounded-lg hover:bg-neutral-500 transition-all"
           onClick={handleOpenModal}
@@ -140,7 +153,7 @@ function Galery() {
           </button>
           <button
             onClick={toggleSortOrder}
-            className="bg-neutral-700 hover:bg-neutral-500 px-3 py-2 rounded-md flex items-center justify-center text-lg transition-all"
+            className="bg-neutral-700 w-fit hover:bg-neutral-500 px-3 py-2 rounded-md flex items-center justify-center text-lg transition-all"
             aria-label={
               sortOrder === SortOrder.ASC ? "Ascendente" : "Descendente"
             }
@@ -154,7 +167,7 @@ function Galery() {
         </div>
       </div>
 
-      <div className="flex flex-wrap justify-between gap-4 pt-2">
+      <div className="flex flex-wrap justify-between gap-4 pt-2 mt-16">
         {myImages.map((image) => (
           <Image
             key={image.id}

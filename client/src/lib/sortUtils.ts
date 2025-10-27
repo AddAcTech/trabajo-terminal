@@ -21,8 +21,8 @@ export interface ImageData {
 
 export function sortImages(
   images: ImageProps[],
-  sortBy: SortBy = SortBy.HINT,
-  sortOrder: SortOrder = SortOrder.ASC
+  sortBy: SortBy = SortBy.DATE, //fecha por orden descendente, el orden por defecto
+  sortOrder: SortOrder = SortOrder.DESC
 ): ImageProps[] {
   return [...images].sort((a, b) => {
     const compareValue =
