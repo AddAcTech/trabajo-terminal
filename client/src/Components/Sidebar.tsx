@@ -65,7 +65,13 @@ function Sidebar() {
           </Link>
         </Tooltip>
         <Tooltip text="Login">
-          <Link to="/login" onClick={() => handleSetActive("Login")}>
+          <Link
+            to="/login"
+            onClick={() => {
+              handleSetActive("Login");
+              localStorage.clear();
+            }}
+          >
             <LuLogIn
               size={30}
               className={`mx-auto ${
