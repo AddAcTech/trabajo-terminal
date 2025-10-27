@@ -42,10 +42,22 @@ function Galery() {
     date: string;
     extraCols: number;
     extraRows: number;
+    publicId: string; // añadido
+    id: number; // añadido
   }) => {
     setIsModalOpen(false);
     if (imageData) {
-      setMyImages([...myImages, imageData]);
+      const newImage: ImageProps = {
+        ...imageData,
+        image: imageData.image,
+        hint: imageData.hint,
+        date: imageData.date,
+        extraCols: imageData.extraCols,
+        extraRows: imageData.extraRows,
+        publicId: imageData.publicId,
+        id: imageData.id,
+      };
+      setMyImages([...myImages, newImage]);
     }
   };
 
