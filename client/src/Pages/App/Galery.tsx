@@ -8,19 +8,20 @@ import { TbSortAscending2, TbSortDescending2 } from "react-icons/tb";
 import { useGlobal } from "../../context/GlobalContext";
 import AnuncioRedireccion from "../../Components/AnuncioRedireccion";
 
-function Galery() {
-  type ImageData = {
-    createdAt: string;
-    id: number;
-    publicId: string;
-    title: string;
-    updatedAt: string;
-    url: string;
-    userId: number;
-    extraCols: number;
-    extraRows: number;
-  };
+// Mover fuera del componente
+type ImageData = {
+  createdAt: string;
+  id: number;
+  publicId: string;
+  title: string;
+  updatedAt: string;
+  url: string;
+  userId: number;
+  extraCols: number;
+  extraRows: number;
+};
 
+function Galery() {
   //variables del galery
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [myImages, setMyImages] = useState<ImageProps[]>([]);
@@ -88,7 +89,7 @@ function Galery() {
 
   // Aplica automáticamente el orden al cambiar sortBy o sortOrder
   useEffect(() => {
-    const sorted = sortImages(myImages, sortBy, sortOrder);
+    const sorted = sortImages([...myImages], sortBy, sortOrder);
     setMyImages(sorted);
   }, [sortBy, sortOrder]);
 

@@ -1,4 +1,5 @@
 // /lib/sortUtils.ts
+import { ImageProps } from "../Components/Image";
 
 export enum SortBy {
   HINT = "hint",
@@ -19,23 +20,15 @@ export interface ImageData {
 }
 
 export function sortImages(
-  images: ImageData[],
+  images: ImageProps[],
   sortBy: SortBy = SortBy.HINT,
   sortOrder: SortOrder = SortOrder.ASC
-): ImageData[] {
+): ImageProps[] {
   return [...images].sort((a, b) => {
-    let valueA : string | Date; //string si es el título, date si es la fecha de publicación
-    let valueB : string | Date;
-    valueA = a[sortBy];
-    valueB = b[sortBy];
-
-    if (sortBy === SortBy.DATE) {
-      valueA = new Date(valueA);
-      valueB = new Date(valueB);
-    }
-
-    if (valueA < valueB) return sortOrder === SortOrder.ASC ? -1 : 1;
-    if (valueA > valueB) return sortOrder === SortOrder.ASC ? 1 : -1;
-    return 0;
+    const compareValue =
+      sortBy === SortBy.HINT
+        ? a.hint.localeCompare(b.hint)
+        : new Date(a.date).getTime() - new Date(b.date).getTime();
+    return sortOrder === SortOrder.ASC ? compareValue : -compareValue;
   });
 }
