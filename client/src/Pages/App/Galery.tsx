@@ -9,7 +9,7 @@ import { useGlobal } from "../../context/GlobalContext";
 import AnuncioRedireccion from "../../Components/AnuncioRedireccion";
 
 function Galery() {
-  type Image = {
+  type ImageData = {
     createdAt: string;
     id: number;
     publicId: string;
@@ -36,28 +36,19 @@ function Galery() {
   const showOverlay = !claveMaestra || isExpired;
 
   const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = (imageData?: {
-    image: string;
-    hint: string;
-    date: string;
-    extraCols: number;
-    extraRows: number;
-    publicId: string; // añadido
-    id: number; // añadido
-  }) => {
+  const handleCloseModal = (imageData?: Partial<ImageProps>) => {
     setIsModalOpen(false);
-    if (imageData) {
+    if (imageData && "image" in imageData) {
       const newImage: ImageProps = {
-        ...imageData,
-        image: imageData.image,
-        hint: imageData.hint,
-        date: imageData.date,
-        extraCols: imageData.extraCols,
-        extraRows: imageData.extraRows,
-        publicId: imageData.publicId,
-        id: imageData.id,
+        image: imageData.image!,
+        hint: imageData.hint!,
+        date: imageData.date!,
+        extraCols: imageData.extraCols!,
+        extraRows: imageData.extraRows!,
+        publicId: imageData.publicId!,
+        id: imageData.id!,
       };
-      setMyImages([...myImages, newImage]);
+      setMyImages((prev) => [...prev, newImage]);
     }
   };
 
@@ -74,7 +65,7 @@ function Galery() {
           }
         );
         const data = await response.json();
-        const images: ImageProps[] = data.map((image: Image) => ({
+        const images: ImageProps[] = data.map((image: ImageData) => ({
           date: image.createdAt,
           publicId: image.publicId,
           id: image.id,
