@@ -28,6 +28,7 @@ const path = require('path');
 const { createCanvas, loadImage, ImageData } = require('canvas');
 const { performance } = require('perf_hooks'); // para performance.now()
 const glob = require('glob');
+const skipHist = process.argv.includes("--nohist");
 //const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 // Exponer globals para que crypto_lib (escrito para navegador) pueda usar ImageData / performance
@@ -176,7 +177,37 @@ function computePSNR(mse, maxPixel = 255.0) {
   return 10 * Math.log10((maxPixel * maxPixel) / mse);
 }
 
+function computeSDR(orig, enc) {
+  if (!orig || !enc) throw new Error("Faltan imágenes para comparar");
+  const ow = orig.width, oh = orig.height;
+
+  // comprobar que otherImage cubre al menos el área original
+  console.log(`/t/tCalculando SDR de (${enc.width}x${enc.height}) vs (${ow}x${oh})`)
+  if (enc.width != ow || enc.height != oh) {
+    throw new Error(`La imagen cifrada tiene diferentes dimensiones (${enc.width}x${enc.height}) que la original (${ow}x${oh})`);
+  }
+  let num = 0;
+  let den = 0;
+  for (let i = 0; i < orig.data.length; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      const s = orig.data[i + c];
+      const sh = enc.data[i + c];
+      num += s * s;
+      const diff = s - sh;
+      den += diff * diff;
+    }
+  }
+  return den === 0 ? 99.0 : 10 * Math.log10(num / den);
+}
+
 function pearsonPerChannel(orig, proc) {
+  if (!orig || !proc) throw new Error("Faltan imágenes para comparar");
+  const ow = orig.width, oh = orig.height;
+
+  // comprobar que otherImage cubre al menos el área original
+  if (proc.width != ow || proc.height != oh) {
+    throw new Error(`La imagen ingresada tiene diferentes dimensiones (${proc.width}x${proc.height}) que la original (${ow}x${oh})`);
+  }
   const out = { r: 0, g: 0, b: 0 };
   const dataO = orig.data;
   const dataP = proc.data;
@@ -230,6 +261,52 @@ function bitCorrectRatio(orig, dec) {
   return equalBits / totalBits;
 }
 
+function padOriginalImageData(imageData, extraCols, extraRows) {
+  const { width, height, data } = imageData;
+  const newWidth = width + extraCols;
+  const newHeight = height + extraRows;
+  const channels = 4; // RGBA
+  const padded = new Uint8ClampedArray(newWidth * newHeight * channels);
+  padded.fill(0); // relleno negro (puedes usar 255 si prefieres blanco)
+  
+  for (let y = 0; y < height; y++) {
+    const srcStart = y * width * channels;
+    const dstStart = y * newWidth * channels;
+    padded.set(data.subarray(srcStart, srcStart + width * channels), dstStart);
+  }
+
+  return { data: padded, width: newWidth, height: newHeight };
+}
+
+function calculateCompressionMetrics(origFilePath, origImageData, encJPEGPath) {
+  // Tamaño real del archivo original en bytes
+  const originalFileSize = fs.statSync(origFilePath).size;
+
+  // Tamaño estimado de la matriz RGB (ignorando alfa)
+  const bytesRGB = origImageData.width * origImageData.height * 3;
+
+  // Tamaño real del JPEG cifrado en bytes
+  const encryptedFileSize = fs.statSync(encJPEGPath).size;
+
+  // Grado de compresión respecto a la imagen sin comprimir
+  const gradoCompresion = encryptedFileSize / bytesRGB;
+
+  // Espacio ahorrado
+  const espacioAhorrado = 1 - gradoCompresion;
+
+  // Relación de compresión respecto a la imagen original en disco
+  const relCompresionOriginal = encryptedFileSize / originalFileSize;
+
+  return {
+    originalFileSize,
+    bytesRGB,
+    encryptedFileSize,
+    gradoCompresion,
+    espacioAhorrado,
+    relCompresionOriginal
+  };
+}
+
 async function createCsv(outDir) {
   const csvPath = path.join(outDir, 'resultados.csv');
   const writer = createCsvWriter({
@@ -246,9 +323,13 @@ async function createCsv(outDir) {
       {id: 'decryptTime', title: 'decryptTime_s'},
       {id: 'mse', title: 'MSE'},
       {id: 'psnr', title: 'PSNR_dB'},
-      {id: 'corrR', title: 'corr_R'},
-      {id: 'corrG', title: 'corr_G'},
-      {id: 'corrB', title: 'corr_B'},
+      {id: 'sdr', title: 'SDR'},
+      {id: 'corrEncR', title: 'corrEncR'},
+      {id: 'corrEncG', title: 'corrEncG'},
+      {id: 'corrEncB', title: 'corrEncB'},
+      {id: 'corrDecR', title: 'corrDecR'},
+      {id: 'corrDecG', title: 'corrDecG'},
+      {id: 'corrDecB', title: 'corrDecB'},
       {id: 'entropyOrigR', title: 'entropyOrig_R'},
       {id: 'entropyOrigG', title: 'entropyOrig_G'},
       {id: 'entropyOrigB', title: 'entropyOrig_B'},
@@ -256,9 +337,9 @@ async function createCsv(outDir) {
       {id: 'entropyEncG', title: 'entropyEnc_G'},
       {id: 'entropyEncB', title: 'entropyEnc_B'},
       {id: 'bitCorrectRatio', title: 'bitCorrectRatio'},
-      {id: 'encJpegPath', title: 'encJpegPath'},
-      {id: 'decImagePath', title: 'decImagePath'},
-      {id: 'histPath', title: 'histPath'}
+      {id: 'gradoCompresion', title: 'gradoCompresion'},
+      {id: 'espacioAhorrado', title: 'espacioAhorrado'},
+      {id: '', title: ''}
     ]
   });
   return writer;
@@ -333,27 +414,53 @@ async function processFolder(inputFolder, outFolder, password) {
         await saveImageDataAsPNG(decCanvasImg, decPath);
 
         // Uso de métricas
-        let encForMetrics = encPlain;
-        if (encPlain.width !== origImageData.width || encPlain.height !== origImageData.height) {
-            const canvasTmp = createCanvas(encPlain.width, encPlain.height);
+        let decForMetrics = decPlain;
+        if (decPlain.width !== origImageData.width || decPlain.height !== origImageData.height) {
+            const canvasTmp = createCanvas(decPlain.width, decPlain.height);
             const ctxTmp = canvasTmp.getContext('2d');
-            ctxTmp.putImageData(plainToCanvasImageData(encPlain), 0, 0);
+            ctxTmp.putImageData(plainToCanvasImageData(decPlain), 0, 0);
             const cropped = ctxTmp.getImageData(0, 0, origImageData.width, origImageData.height);
-            encForMetrics = { data: cropped.data, width: cropped.width, height: cropped.height };
+            decForMetrics = { data: cropped.data, width: cropped.width, height: cropped.height };
         }
 
-        const mse = computeMSE(origImageData, plainToCanvasImageData(encForMetrics));
+        // Cálculo de MSE y PSNR con la imagen descifrada
+        const mse = computeMSE(origImageData, plainToCanvasImageData(decForMetrics));
         const psnr = computePSNR(mse);
-        const corr = pearsonPerChannel(origImageData, plainToCanvasImageData(encForMetrics));
+        
+
+        // Crear versión padded de la imagen original
+        const paddedOrig = padOriginalImageData(origImageData, encResult.extraCols, encResult.extraRows);
+
+        //Calculo relación señal/distorsión, con la imagen padded
+        const sdr = computeSDR(paddedOrig, plainToCanvasImageData(encPlain));
+
+
+        // Correlaciones — ahora dos: cifrada y descifrada
+        const corrEnc = pearsonPerChannel(paddedOrig, plainToCanvasImageData(encPlain));
+        const corrDec = pearsonPerChannel(origImageData, plainToCanvasImageData(decForMetrics));
+
+        // Entropías — original y cifrada
         const entropyOrig = shannonEntropy(origImageData);
-        const entropyEnc = shannonEntropy(plainToCanvasImageData(encForMetrics));
+        const entropyEnc = shannonEntropy(plainToCanvasImageData(encPlain));
 
-        const histName = `${base}_b${blockSize}_hist`;
-        const histPath = path.join(histOut, histName + '.png');
-        await saveHistogramComparison(origImageData, plainToCanvasImageData(encForMetrics), path.join(histOut, histName));
+        // === HISTOGRAMA ===
+        if (!skipHist) {
+          const histName = `${base}_b${blockSize}_hist`;
+          const histPath = path.join(histOut, histName + '.png');
+          await saveHistogramComparison(origImageData, plainToCanvasImageData(encPlain), path.join(histOut, histName));
 
+        } else {
+          console.log("↳ Histogramas omitidos (modo rápido activado)");
+        }
+        
+        // === RAZÓN DE BITS CORRECTOS ===
         const bitRatio = bitCorrectRatio(origImageData, decCanvasImg);
 
+        //COMPRESION
+        const path_origin = path.join(inputFolder,path.basename(file));
+        const comp = calculateCompressionMetrics(path_origin, origImageData, encJpegPath);
+
+        // === REGISTRO DE RESULTADOS ===
         records.push({
             image: base,
             blockSize,
@@ -366,19 +473,33 @@ async function processFolder(inputFolder, outFolder, password) {
             decryptTime: decResult.time,
             mse,
             psnr,
-            corrR: corr.r,
-            corrG: corr.g,
-            corrB: corr.b,
+            sdr,
+            // Correlaciones con imagen cifrada
+            corrEncR: corrEnc.r,
+            corrEncG: corrEnc.g,
+            corrEncB: corrEnc.b,
+
+            // Correlaciones con imagen descifrada
+            corrDecR: corrDec.r,
+            corrDecG: corrDec.g,
+            corrDecB: corrDec.b,
+
             entropyOrigR: entropyOrig.r,
             entropyOrigG: entropyOrig.g,
             entropyOrigB: entropyOrig.b,
+
             entropyEncR: entropyEnc.r,
             entropyEncG: entropyEnc.g,
             entropyEncB: entropyEnc.b,
+
             bitCorrectRatio: bitRatio,
+            gradoCompresion: comp.gradoCompresion,
+            espacioAhorrado: comp.espacioAhorrado,
+            relCompresionOriginal: comp.relCompresionOriginal
+            /*
             encJpegPath: path.relative(outFolder, encJpegPath),
             decImagePath: path.relative(outFolder, decPath),
-            histPath: path.relative(outFolder, histPath)
+            histPath: path.relative(outFolder, histPath) */
         });
 
         //await csvWriter.writeRecords(records);
@@ -407,13 +528,19 @@ async function processFolder(inputFolder, outFolder, password) {
   console.log('Proceso completado. CSV y archivos en', outFolder);
 }
 
+
+
 async function main() {
+  console.log("process.argv =", process.argv);
   const args = process.argv.slice(2);
   if (args.length < 3) {
     console.error('Uso: node pipeline_cifrado_imagenes.js <input_folder> <out_folder> <password>');
     process.exit(1);
   }
   const [inputFolder, outFolder, password] = args;
+  console.log(`🟦 Carpeta de entrada: ${inputFolder}`);
+  console.log(`🟩 Carpeta de salida:  ${outFolder}`);
+  console.log(`🔐 Clave:      ${password}`);
   await processFolder(inputFolder, outFolder, password);
 }
 

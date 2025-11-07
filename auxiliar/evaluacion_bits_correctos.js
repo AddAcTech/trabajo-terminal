@@ -6,18 +6,22 @@ import { encryptImage, decryptImage } from "./cifrado.js"; // tus funciones ya d
 
 global.ImageData = ImageData; // requerido por las funciones de cifrado
 
+console.log("process.argv =", process.argv);
 // === CONFIGURACIÓN ===
-const INPUT_DIR = "./test";
+const INPUT_DIR = "./entrada";
 const OUTPUT_DIR = "./res_bit_ratio";
-const CSV_PATH = path.join(OUTPUT_DIR, "resultados_umbral.csv");
+const modeArg = process.argv[2]?parseInt(process.argv[2]): 1;
+const useDynamicKey = (modeArg == 1);
+console.log(`🔐 Modo de clave seleccionado: ${useDynamicKey ? "DINÁMICA (nueva por iteración)" : "ESTÁTICA (misma clave)"}`);
+const modeSuffix = useDynamicKey ? "_dynamic" : "_static";
+const CSV_PATH = path.join(OUTPUT_DIR,`resultados_umbral${modeSuffix}.csv`);
 const PASSWORD = "p455w0rd-PL4C3H0LD3R";
 const blockSize = 16;
 const QUALITY = 0.85;
-const max_iterations = 10;
+const max_iterations = 15;
 
 const BCR_THRESHOLDS = [0.8, 0.7, 0.6, 0.5]; // 80%, 50%, 30%
 
-const useDynamicKey = false; //Para comprobar si el patrón se repite al cambiar la clave
 
 await fs.ensureDir(OUTPUT_DIR);
 
@@ -64,14 +68,71 @@ async function writeCSV(records) {
     "Imagen",
     "Umbral BCR",
     "Iteraciones",
-    "BCR alcanzado"
+    "BCR alcanzado",
+    "MSE",
+    "PSNR",
+    "Corr_R",
+    "Corr_G",
+    "Corr_B"
   ];
   const csv = [headers.join(",")].concat(
-    records.map(r => [r.image, r.threshold, r.iterations, r.bcr.toFixed(4)].join(","))
+    records.map(r =>
+      [
+        r.image,
+        r.threshold,
+        r.iterations,
+        r.bcr.toFixed(4),
+        r.mse?.toFixed(4) ?? "",
+        r.psnr?.toFixed(4) ?? "",
+        r.corrR?.toFixed(4) ?? "",
+        r.corrG?.toFixed(4) ?? "",
+        r.corrB?.toFixed(4) ?? ""
+      ].join(",")
+    )
   );
   await fs.writeFile(CSV_PATH, csv.join("\n"), "utf8");
   console.log(`✅ CSV guardado en: ${CSV_PATH}`);
 }
+
+// === Métricas adicionales ===
+function computeMSE(img1, img2) {
+  let sum = 0;
+  let count = 0;
+  for (let i = 0; i < img1.data.length; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      const diff = img1.data[i + c] - img2.data[i + c];
+      sum += diff * diff;
+      count++;
+    }
+  }
+  return sum / count;
+}
+
+function computePSNR(mse, maxVal = 255) {
+  return mse === 0 ? 99.0 : 10 * Math.log10((maxVal * maxVal) / mse);
+}
+
+function pearsonPerChannel(img1, img2) {
+  const result = {};
+  const ch = ["r", "g", "b"];
+  for (let c = 0; c < 3; c++) {
+    const v1 = [], v2 = [];
+    for (let i = c; i < img1.data.length; i += 4) {
+      v1.push(img1.data[i]);
+      v2.push(img2.data[i]);
+    }
+    const mean1 = v1.reduce((a,b)=>a+b)/v1.length;
+    const mean2 = v2.reduce((a,b)=>a+b)/v2.length;
+    let num=0, d1=0, d2=0;
+    for (let i=0;i<v1.length;i++){
+      const a=v1[i]-mean1, b=v2[i]-mean2;
+      num+=a*b; d1+=a*a; d2+=b*b;
+    }
+    result[ch[c]] = num / Math.sqrt(d1*d2);
+  }
+  return result;
+}
+
 
 // === PROCESO PRINCIPAL ===
 async function main() {
@@ -105,28 +166,39 @@ async function main() {
       const key = useDynamicKey ? generateKey() : baseKey;
        // --- CIFRAR ---
       const enc = await encryptImage(current, blockSize, key);
-      const encPath = path.join(OUTPUT_DIR, `${path.parse(imageName).name}_b${blockSize}_enc_iter${iteration}.jpg`);
+      const encPath = path.join(OUTPUT_DIR, `${path.parse(imageName).name}_enc_iter${iteration}${modeSuffix}.jpeg`);
       await saveImageDataAsJPEG(enc.image, encPath, QUALITY);
 
       // --- DESCIFRAR ---
       const encJPEG = await loadImageDataFromFile(encPath);
       const dec = await decryptImage(encJPEG, blockSize, key, enc.extraRows, enc.extraCols);
+
+      //mediciones
       const bcr = computeBitCorrectRatio(original, dec.image);
+      const mse = computeMSE(original, dec.image);
+      const psnr = computePSNR(mse);
+      const corr = pearsonPerChannel(original, dec.image);
 
       console.log(`   Iteración ${iteration}: bitCorrectRatio = ${(bcr * 100).toFixed(4)}%`);
-      iterationStats[iteration - 1].push(bcr);
+      iterationStats[iteration - 1].push({ bcr, mse, psnr, corr });
+
 
       // --- Verificar si se cruza algún umbral ---
       for (const th of BCR_THRESHOLDS) {
         if (!reached.has(th) && bcr <= th) {
           reached.add(th);
-          const decPath = path.join(OUTPUT_DIR, `${path.parse(imageName).name}_b${blockSize}_BCR${Math.round(th * 100)}.jpg`);
+          const decPath = path.join(OUTPUT_DIR, `${path.parse(imageName).name}_b${blockSize}_BCR${Math.round(th * 100)}${modeSuffix}.jpg`);
           await saveImageDataAsJPEG(dec.image, decPath, 1.0);
-          results.push({
+           results.push({
             image: imageName,
             threshold: th,
             iterations: iteration,
-            bcr
+            bcr,
+            mse,
+            psnr,
+            corrR: corr.r,
+            corrG: corr.g,
+            corrB: corr.b
           });
             console.log(`   🏁 Umbral ${th * 100}% alcanzado en iteración ${iteration}`);
           }
@@ -137,14 +209,19 @@ async function main() {
 
         //si es multiplo de la mitad, en este caso 5 y 10
         if (iteration % (max_iterations / 2) == 0 ){
-          const decPath = path.join(OUTPUT_DIR, `${path.parse(imageName).name}_CHECKPOINT_${iteration}.jpg`);
+          const decPath = path.join(OUTPUT_DIR, `${path.parse(imageName).name}_CHECKPOINT_${iteration}${modeSuffix}.jpg`);
           await saveImageDataAsJPEG(dec.image, decPath, 1.0);
-          results.push({
-              image: imageName,
-              threshold: 0,
-              iterations: iteration,
-              bcr
-            });
+            results.push({
+            image: imageName,
+            threshold: 0,
+            iterations: iteration,
+            bcr,
+            mse,
+            psnr,
+            corrR: corr.r,
+            corrG: corr.g,
+            corrB: corr.b
+          });
         }
 
         // --- Limpiar imágenes que no alcanzaron umbral ---
@@ -157,23 +234,33 @@ async function main() {
 
   await writeCSV(results);
 
-  const avgLines = ["iteracion,promedio_bitCorrectRatio"];
+  const avgLines = ["iteracion,promedio_bitCorrectRatio,promedio_MSE,promedio_PSNR,promedio_CorrR,promedio_CorrG,promedio_CorrB"];
   for (let i = 0; i < iterationStats.length; i++) {
     const vals = iterationStats[i];
-    const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
-    avgLines.push(`${i + 1},${avg.toFixed(6)}`);
+    if (vals.length === 0) {
+      avgLines.push(`${i + 1},0,0,0,0,0,0`);
+      continue;
+    }
+    const avgBCR = vals.map(v => v.bcr).reduce((a,b)=>a+b,0)/vals.length;
+    const avgMSE = vals.map(v => v.mse).reduce((a,b)=>a+b,0)/vals.length;
+    const avgPSNR = vals.map(v => v.psnr).reduce((a,b)=>a+b,0)/vals.length;
+    const avgR = vals.map(v => v.corr.r).reduce((a,b)=>a+b,0)/vals.length;
+    const avgG = vals.map(v => v.corr.g).reduce((a,b)=>a+b,0)/vals.length;
+    const avgB = vals.map(v => v.corr.b).reduce((a,b)=>a+b,0)/vals.length;
+    avgLines.push(`${i + 1},${avgBCR.toFixed(6)},${avgMSE.toFixed(6)},${avgPSNR.toFixed(6)},${avgR.toFixed(6)},${avgG.toFixed(6)},${avgB.toFixed(6)}`);
   }
-  fs.writeFileSync(path.join(OUTPUT_DIR,"promedio_iteraciones.csv"), avgLines.join("\n"), "utf8");
+
+  fs.writeFileSync(path.join(OUTPUT_DIR,`promedio_iteraciones${modeSuffix}.csv`), avgLines.join("\n"), "utf8");
 
   // === MENSAJE FINAL ESTILIZADO ===
   const boxTop = "╔" + "═".repeat(55) + "╗";
   const boxBottom = "╚" + "═".repeat(55) + "╝";
   const message = `
   ${boxTop}
-  ║${" ".repeat(16)}✅ PROCESO COMPLETADO ✅${" ".repeat(15)}║
-  ║${" ".repeat(7)}Los resultados han sido generados con éxito${" ".repeat(5)}║
-  ║${" ".repeat(11)}Archivos creados: resultados_umbral.csv${" ".repeat(5)}║
-  ║${" ".repeat(11)}y promedio_iteraciones.csv${" ".repeat(18)}║
+  ║${" ".repeat(16)} PROCESO COMPLETADO ${" ".repeat(16)}║
+  ║${" ".repeat(8)}Modo de clave: ${useDynamicKey ? "DINÁMICA (por iteración)" : "ESTÁTICA (única clave)"}${" ".repeat(9)}║
+  ║${" ".repeat(5)}Archivos generados: resultados_umbral${modeSuffix}.csv${" ".repeat(8)}║
+  ║${" ".repeat(15)}y promedio_iteraciones${modeSuffix}.csv${" ".repeat(5)}║
   ${boxBottom}
   `;
 

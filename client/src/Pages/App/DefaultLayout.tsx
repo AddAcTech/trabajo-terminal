@@ -8,7 +8,7 @@ export default function DefaultLayout() {
       <Sidebar />
       <div className="w-full">
         <GlobalProvider>
-          <main className="flex justify-center h-screen bg-[#edf1f4] bg-cover p-4">
+          <main className="flex justify-center h-screen bg-[#edf1f4] bg-cover p-3">
             <Outlet />
           </main>
         </GlobalProvider>

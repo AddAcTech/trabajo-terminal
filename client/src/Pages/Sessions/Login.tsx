@@ -77,13 +77,13 @@ function Login() {
 
         <div>
           <input
-            placeholder="Enter your email"
+            placeholder="email@example.com"
             type="email"
             className={`sessionsInput w-full ${
               errors.email ? "border-red-500" : ""
             }`}
             {...register("email", {
-              required: "Email is required",
+              required: "Se requiere ingresar un correo electrónico",
               pattern: {
                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                 message: "Invalid email address",
@@ -97,13 +97,13 @@ function Login() {
 
         <div>
           <input
-            placeholder="Enter your password"
+            placeholder="Contraseña"
             type="password"
             className={`sessionsInput w-full ${
               errors.password ? "border-red-500" : ""
             }`}
             {...register("password", {
-              required: "Password is required",
+              required: "Se requiere una contraseña",
             })}
           />
           {errors.password && (
@@ -114,13 +114,13 @@ function Login() {
         </div>
 
         <button type="submit" className="sessionsButton" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Ingresando..." : "Iniciar sesión"}
         </button>
       </form>
       <p>
-        Don't have an account?{" "}
+        ¿No posee una cuenta?{" "}
         <Link to="/signup" className="text-amber-950">
-          Sign up here
+          ¡Registrese aquí!
         </Link>
       </p>
     </div>

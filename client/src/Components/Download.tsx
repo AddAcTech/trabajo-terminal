@@ -95,7 +95,7 @@ const Download: React.FC<DownloadProps> = ({
       
       >
         <h2 className="text-xl font-bold mb-4 text-center">
-          Descifre y descargue su imagen
+          {hint}
         </h2>
 
         {/* Imagen cifrada */}
@@ -124,17 +124,18 @@ const Download: React.FC<DownloadProps> = ({
             />
 
             {/* Selección de formato */}
-            <label className="block font-semibold mb-1">Formato de descarga:</label>
-            <select
-              value={downloadFormat}
-              onChange={(e) => setDownloadFormat(e.target.value as "jpeg" | "png" | "gif")}
-              className="border rounded px-2 py-1 mb-4 w-full"
-            >
-              <option value="jpeg">JPEG</option>
-              <option value="png">PNG</option>
-              <option value="gif">GIF</option>
-            </select>
-
+            <div className="flex justify-between">
+              <label className="block font-semibold mb-1">Formato de descarga:</label>
+              <select
+                value={downloadFormat}
+                onChange={(e) => setDownloadFormat(e.target.value as "jpeg" | "png" | "gif")}
+                className="border rounded px-2 py-1 mb-3 w-full min-w-fit"
+              >
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+                <option value="gif">GIF</option>
+              </select>
+            </div>
             {/* Botón de descarga */}
             <button
               onClick={handleDownload}
