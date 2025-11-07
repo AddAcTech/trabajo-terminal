@@ -44,9 +44,10 @@ export const storeImage = async (req, res) => {
       url: uploadResponse.secure_url,
       title: description,
       publicId: uploadResponse.public_id,
-      userId: req.user.userId, // Using the userId from the JWT token
+      userId: req.user.userId,
       extraCols: extraCols,
       extraRows: extraRows,
+      bytes: uploadResponse.bytes,
     });
 
     return res.status(201).json({
@@ -57,6 +58,9 @@ export const storeImage = async (req, res) => {
         url: image.url,
         title: image.title,
         userId: image.userId,
+        bytes: image.bytes,
+        extraCols: image.extraCols,
+        extraRows: image.extraRows,
       },
     });
   } catch (error) {

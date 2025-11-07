@@ -12,6 +12,7 @@ export type ImageProps = {
   extraRows: number;
   publicId: string;
   id: number;
+  bytes: number;
 };
 
 const blockSize = 8;
@@ -108,6 +109,11 @@ function Image({
         <p>{image.id}</p>
         <p>{image.date}</p>
         <p>{image.hint}</p>
+        <p>
+          {image.bytes
+            ? (image.bytes / 1024).toFixed(2) + " KB"
+            : "Desconocido"}
+        </p>
       </div>
     </div>
   );

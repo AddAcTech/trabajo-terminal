@@ -27,12 +27,16 @@ const Image = sequelize.define(
     },
     extraCols: {
       type: DataTypes.INTEGER,
-      allowNull:false
+      allowNull: false,
     },
     extraRows: {
       type: DataTypes.INTEGER,
-      allowNull:false
-    }
+      allowNull: false,
+    },
+    bytes: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,
