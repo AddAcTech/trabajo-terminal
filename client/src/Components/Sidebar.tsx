@@ -32,8 +32,13 @@ function Sidebar() {
   //   }
 
   return (
-    <aside className="text-gray-400 bg-white h-full p-4 lg:flex lg:flex-col justify-between hidden">
+    <aside className="text-gray-400 bg-white h-full p-3 lg:flex lg:flex-col justify-between">
       <div className="flex flex-col gap-7 h-full py-4 mt-4">
+        <img
+          src="/favicon-TT.svg"
+          loading="lazy"
+          className="mx-auto w-7.5"
+        />
         <Tooltip text="Galery">
           <Link to="/galery" onClick={() => handleSetActive("Galery")}>
             <IoMdPhotos

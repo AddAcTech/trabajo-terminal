@@ -25,7 +25,7 @@ export default function MasterKey() {
       <h3 className="text-1xl mb-6 italic">Vigente durante esta sesión</h3>
       <form onSubmit={handleSubmit} className="flex gap-3">
         <input
-          type="text"
+          type="password"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Introduce la clave"

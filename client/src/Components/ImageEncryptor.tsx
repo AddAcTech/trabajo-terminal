@@ -196,7 +196,7 @@ const ImageEncryptor: React.FC<{
         onClick={(e) => e.stopPropagation()}
       >
         <h1 className="text-4xl font-bold mb-6 text-center w-full">
-          Cifrado de imagen
+          Subir una imagen
         </h1>
         <div className="max-w-sm mx-auto">
           <input
@@ -208,7 +208,7 @@ const ImageEncryptor: React.FC<{
           <input
             className="sessionsInput mt-2"
             type="text"
-            placeholder="Image title"
+            placeholder="Alias de la imagen"
             value={hint}
             onChange={(e) => setHint(e.target.value)}
           />

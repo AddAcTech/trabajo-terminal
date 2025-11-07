@@ -32,19 +32,29 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 // ======================
 
 async function loadImageDataFromFile(filePath) {
-  const img = await loadImage(filePath);
-  const canvas = createCanvas(img.width, img.height);
-  const ctx = canvas.getContext("2d");
+  let img = await loadImage(filePath);
+  let canvas = createCanvas(img.width, img.height);
+  let ctx = canvas.getContext("2d");
   ctx.drawImage(img, 0, 0);
-  return ctx.getImageData(0, 0, img.width, img.height);
+  const imageDataReturn = ctx.getImageData(0, 0, img.width, img.height);
+  canvas.width = 0;
+  canvas.height = 0;
+  ctx = null;
+  canvas = null;
+  img = null;
+  return imageDataReturn;
 }
 
 async function saveAsJPEG(imageData, filePath, quality) {
-  const canvas = createCanvas(imageData.width, imageData.height);
-  const ctx = canvas.getContext("2d");
+  let canvas = createCanvas(imageData.width, imageData.height);
+  let ctx = canvas.getContext("2d");
   ctx.putImageData(imageData, 0, 0);
   const buffer = canvas.toBuffer("image/jpeg", { quality });
   fs.writeFileSync(filePath, buffer);
+  canvas.width = 0;
+  canvas.height = 0;
+  ctx = null;
+  canvas = null;
   return buffer.length;
 }
 

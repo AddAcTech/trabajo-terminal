@@ -53,7 +53,7 @@ function SignUp() {
       if (!response.ok) {
         throw new Error(responseData.error || "Registration failed");
       }
-      toast.success("Registration successful!");
+      toast.success("Registro exitoso!");
       navigate("/login");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "An error occurred");
@@ -82,7 +82,7 @@ function SignUp() {
         <div className="flex gap-2">
           <div className="w-1/2">
             <input
-              placeholder="Name"
+              placeholder="Nombre(s)"
               type="text"
               className={`sessionsInput w-full ${
                 errors.firstName ? "border-red-500" : ""
@@ -97,7 +97,7 @@ function SignUp() {
           </div>
           <div className="w-1/2">
             <input
-              placeholder="Last Name"
+              placeholder="Apellidos(s)"
               type="text"
               className={`sessionsInput w-full ${
                 errors.lastName ? "border-red-500" : ""
@@ -114,13 +114,13 @@ function SignUp() {
 
         <div>
           <input
-            placeholder="Enter your email"
+            placeholder="Ingrese su correo"
             type="email"
             className={`sessionsInput w-full ${
               errors.email ? "border-red-500" : ""
             }`}
             {...register("email", {
-              required: "Email is required",
+              required: "Se requiere un correo electronico",
               pattern: {
                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                 message: "Invalid email address",
@@ -134,16 +134,16 @@ function SignUp() {
 
         <div>
           <input
-            placeholder="Enter your password"
+            placeholder="Ingrese una contraseña"
             type="password"
             className={`sessionsInput w-full ${
               errors.password ? "border-red-500" : ""
             }`}
             {...register("password", {
-              required: "Password is required",
+              required: "Se requiere una contraseña",
               minLength: {
                 value: 8,
-                message: "Password must be at least 8 characters",
+                message: "La contraseña debe contener al menos 8 caracteres",
               },
             })}
           />
@@ -156,15 +156,15 @@ function SignUp() {
 
         <div>
           <input
-            placeholder="Confirm your password"
+            placeholder="Confirme su contraseña"
             type="password"
             className={`sessionsInput w-full ${
               errors.confirmPassword ? "border-red-500" : ""
             }`}
             {...register("confirmPassword", {
-              required: "Please confirm your password",
+              required: "Por favor, confirme su contraseña.",
               validate: (value) =>
-                value === password || "Passwords do not match",
+                value === password || "Las contraseñas ingresadas no son iguales.",
             })}
           />
           {errors.confirmPassword && (
@@ -174,13 +174,13 @@ function SignUp() {
           )}
         </div>
         <button type="submit" className="sessionsButton" disabled={loading}>
-          {loading ? "Processing..." : "Sign Up"}
+          {loading ? "Procesando..." : "Registrarse"}
         </button>
       </form>
       <p>
-        Already have an account{" "}
+        ¿Ya tiene una cuenta?{" "}
         <Link to="/login" className="text-amber-950">
-          Login here
+          Iniciar sesión
         </Link>
       </p>
     </div>
