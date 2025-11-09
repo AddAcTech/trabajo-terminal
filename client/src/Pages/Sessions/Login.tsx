@@ -66,7 +66,7 @@ function Login() {
         className="p-4 flex flex-col gap-2 w-full md:max-w-sm"
       >
         <h1 className="font-bold text-3xl text-center font-mono mb-2">
-          Login to your account
+          Ingrese a su cuenta
         </h1>
 
         {error && (

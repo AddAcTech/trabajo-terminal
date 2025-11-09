@@ -106,7 +106,6 @@ function Image({
         />
       </div>
       <div>
-        <p>{image.id}</p>
         <p>{image.date}</p>
         <p>{image.hint}</p>
         <p>
