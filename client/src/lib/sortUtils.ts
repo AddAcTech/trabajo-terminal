@@ -4,6 +4,7 @@ import { ImageProps } from "../Components/Image";
 export enum SortBy {
   HINT = "hint",
   DATE = "date",
+  SIZE = "size",
 }
 
 export enum SortOrder {
@@ -17,6 +18,7 @@ export interface ImageData {
   date: string;
   extraCols: number;
   extraRows: number;
+  bytes: number;
 }
 
 export function sortImages(
@@ -26,9 +28,11 @@ export function sortImages(
 ): ImageProps[] {
   return [...images].sort((a, b) => {
     const compareValue =
-      sortBy === SortBy.HINT
+      sortBy === SortBy.HINT //hint = titulo
         ? a.hint.localeCompare(b.hint)
-        : new Date(a.date).getTime() - new Date(b.date).getTime();
+        : sortBy === SortBy.SIZE //tamaño
+          ? a.bytes - b.bytes
+          :new Date(a.date).getTime() - new Date(b.date).getTime(); //fecha
     return sortOrder === SortOrder.ASC ? compareValue : -compareValue;
   });
 }

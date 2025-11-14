@@ -82,7 +82,7 @@ function Galery() {
       };
       getImages();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unknown error");
+      toast.error(error instanceof Error ? error.message : "Error desconocido");
     }
   }, []);
 
@@ -92,20 +92,14 @@ function Galery() {
 
   // Aplica automáticamente el orden al cambiar sortBy o sortOrder
   useEffect(() => {
-    const sorted = sortImages([...myImages], sortBy, sortOrder);
+    const sorted = sortImages(myImages, sortBy, sortOrder);
     setMyImages(sorted);
   }, [sortBy, sortOrder]);
 
-  // Cambia el tipo de orden (sin errores de inferencia)
-  const toggleSortType = () => {
-    setSortBy((prev) => (prev === SortBy.HINT ? SortBy.DATE : SortBy.HINT));
-  };
 
   // Cambia ascendente/descendente
   const toggleSortOrder = () => {
-    setSortOrder((prev) =>
-      prev === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC
-    );
+    setSortOrder((prev) => (prev === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC));
   };
 
   //preservar al recargar la página, tal vez se quite
@@ -147,25 +141,27 @@ function Galery() {
         >
           Subir nueva imagen
         </button>
-        <div className="flex gap-2">
-          <button
-            onClick={toggleSortType}
-            className="bg-neutral-700 hover:bg-neutral-500 px-3 py-2 rounded-md"
+        <div className="flex items-center gap-2">
+          <label htmlFor="sort" className="text-sm text-neutral-300">
+            Ordenar por:
+          </label>
+          <select
+            id="sort"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortBy)}
+            className="bg-neutral-800 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Ordenar por: {sortBy === SortBy.HINT ? "Título" : "Fecha de subida"}
-          </button>
+            <option value={SortBy.HINT}>Título</option>
+            <option value={SortBy.SIZE}>Tamaño</option>
+            <option value={SortBy.DATE}>Fecha de subida</option>
+          </select>
+
           <button
             onClick={toggleSortOrder}
-            className="bg-neutral-700 w-fit hover:bg-neutral-500 px-3 py-2 rounded-md flex items-center justify-center text-lg transition-all"
-            aria-label={
-              sortOrder === SortOrder.ASC ? "Ascendente" : "Descendente"
-            }
+            className="bg-neutral-700 hover:bg-neutral-600 px-3 py-2 rounded-md flex items-center justify-center text-lg transition-all"
+            aria-label={sortOrder === SortOrder.ASC ? "Ascendente" : "Descendente"}
           >
-            {sortOrder === SortOrder.ASC ? (
-              <TbSortAscending2 />
-            ) : (
-              <TbSortDescending2 />
-            )}
+            {sortOrder === SortOrder.ASC ? <TbSortAscending2 /> : <TbSortDescending2 />}
           </button>
         </div>
       </div>
