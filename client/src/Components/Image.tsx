@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BsDownload, BsTrash } from "react-icons/bs";
 import Download from "./Download";
 import Delete from "./Delete";
+import ImageInspector from "./ImageInspector";
 
 //el cuerpo de una imágen, traida de la base de datos
 export type ImageProps = {
@@ -34,6 +35,8 @@ function Image({
   const handleCloseModal = () => setDownload(false);
   const handleOpenDelete = () => setDeleteOpen(true);
   const handleCloseDelete = () => setDeleteOpen(false);
+
+  const [verImagen, setVerImagen] = useState(false);
 
   const handleDeleteConfirm = async () => {
     setDeleting(true);
@@ -102,7 +105,8 @@ function Image({
         <img
           src={image.image}
           loading="lazy"
-          className="bg-gray-700 h-32 w-60 rounded-xl"
+          className="bg-gray-700 h-32 w-60 rounded-xl cursor-pointer"
+          onClick={() => setVerImagen(true)}
         />
       </div>
       <div>
@@ -114,6 +118,7 @@ function Image({
             : "Desconocido"}
         </p>
       </div>
+       {verImagen && <ImageInspector src={image.image} onClose={() => setVerImagen(false)} />}
     </div>
   );
 }

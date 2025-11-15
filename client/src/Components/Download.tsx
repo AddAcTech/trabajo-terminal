@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { decryptImage } from "../lib/cifrado";
 import { downloadBlob } from "../lib/download_utils";
+import ImageInspector from "./ImageInspector";
 
 type DownloadProps = {
   onClose: () => void;
@@ -25,6 +26,9 @@ const Download: React.FC<DownloadProps> = ({
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [decryptedSrc, setDecryptedSrc] = useState<string | null>(null);
   const [downloadFormat, setDownloadFormat] = useState<"jpeg" | "png" | "gif">("jpeg");
+
+  const [verImagenCifrada, setVerImagenCifrada] = useState(false);
+  const [verImagenDescifrada, setVerImagenDescifrada] = useState(false);
 
   if(!claveMaestra){
     return 
@@ -103,8 +107,10 @@ const Download: React.FC<DownloadProps> = ({
           src={src}
           loading="lazy"
           className="bg-gray-700 h-36 w-70 rounded-xl mb-4 object-cover mx-auto"
+          onClick={() => setVerImagenCifrada(true)}
         />
-
+        {verImagenCifrada && <ImageInspector src={src} onClose={() => setVerImagenCifrada(false)} />}
+      
         {/* Botón para descifrar */}
         <button
           onClick={handleDecrypt}
@@ -121,7 +127,10 @@ const Download: React.FC<DownloadProps> = ({
             <img
               src={decryptedSrc}
               className="bg-gray-200 h-36 w-70 rounded-xl mb-4 object-cover mx-auto"
+              onClick={() => setVerImagenDescifrada(true)}
             />
+
+            {verImagenDescifrada && <ImageInspector src={decryptedSrc} onClose={() => setVerImagenDescifrada(false)} />}
 
             {/* Selección de formato */}
             <div className="flex justify-between">
@@ -146,6 +155,7 @@ const Download: React.FC<DownloadProps> = ({
           </>
         )}
       </div>
+      
     </div>
   );
 };
