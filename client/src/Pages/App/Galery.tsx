@@ -3,7 +3,7 @@ import { ImageProps } from "../../Components/Image";
 import Image from "../../Components/Image";
 import ImageEncryptor from "../../Components/ImageEncryptor";
 import { toast } from "react-toastify";
-import { SortBy, SortOrder, sortImages } from "../../lib/sortUtils";
+import { SortBy, SortOrder, formatBytes, sortImages } from "../../lib/sortUtils";
 import { TbSortAscending2, TbSortDescending2 } from "react-icons/tb";
 import { useGlobal } from "../../context/GlobalContext";
 import AnuncioRedireccion from "../../Components/AnuncioRedireccion";
@@ -26,6 +26,7 @@ function Galery() {
   //variables del galery
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [myImages, setMyImages] = useState<ImageProps[]>([]);
+  const espacioTotal = myImages.reduce((sum, img) => sum + (img.bytes ?? 0), 0);
 
   // handler para eliminar una imagen localmente cuando el servidor confirma el borrado
   const handleImageDeleted = (id: number) => {
@@ -182,6 +183,15 @@ function Galery() {
           claveMaestra={claveMaestra}
         />
       )}
+      <div className="
+        fixed bottom-4 left-16 
+        bg-neutral-900/60 backdrop-blur-sm 
+        text-white px-4 py-2 rounded-lg 
+        shadow-lg text-sm
+        pointer-events-none select-none ">
+        Espacio total <br/>
+        ocupado: {formatBytes(espacioTotal)}
+      </div>
     </div>
   );
 }
