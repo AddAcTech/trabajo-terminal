@@ -193,7 +193,7 @@ const ImageEncryptor: React.FC<{
       onClick={() => onClose()}
     >
       <div
-        className="bg-white p-7 rounded-xl shadow-lg"
+        className="bg-white p-7 rounded-xl shadow-lg max-h-[90vh] overflow-y-auto "
         onClick={(e) => e.stopPropagation()}
       >
         <h1 className="text-4xl font-bold mb-6 text-center w-full">
@@ -233,10 +233,10 @@ const ImageEncryptor: React.FC<{
           </button>
         </div>
 
-        <div className="flex justify-around mt-6">
+        <div className="flex flex-col sm:flex-row justify-around mt-3">
           {selectedImage && (
             <div>
-              <h2 className="text-2xl font-semibold mb-2">Imagen Original</h2>
+              <h2 className="text-2xl font-semibold mb-1 text-center">Imagen Original</h2>
               <img
                 src={URL.createObjectURL(selectedImage)}
                 alt="Imagen Original"
@@ -246,7 +246,7 @@ const ImageEncryptor: React.FC<{
           )}
           {modifiedImage && (
             <div>
-              <h2 className="text-2xl font-semibold mb-2">Imagen Cifrada</h2>
+              <h2 className="text-2xl font-semibold mb-1 text-center">Imagen Cifrada</h2>
               <img
                 src={modifiedImage}
                 alt="Imagen Cifrada"

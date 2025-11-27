@@ -56,7 +56,7 @@ const ImageInspector: React.FC<ImageInspectorProps> = ({ src, onClose }) => {
   // 🔸 ZOOM CON RUEDA DEL MOUSE
   // -----------------------------------------------------------
   const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
+    //e.preventDefault();
     const direction = e.deltaY < 0 ? 1 : -1;
 
     setZoom((current) => {

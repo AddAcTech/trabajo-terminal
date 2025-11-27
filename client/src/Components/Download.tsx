@@ -93,7 +93,7 @@ const Download: React.FC<DownloadProps> = ({
     >
       <div
        
-        className="bg-white p-4 rounded-xl shadow-lg w-[400px] items-center justify-center"
+        className="bg-white p-4 rounded-xl shadow-lg max-h-[90vh] overflow-y-auto w-11/12 max-w-md"
        
         onClick={(e) => e.stopPropagation()}
       
