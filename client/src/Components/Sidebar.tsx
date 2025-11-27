@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { IoMdPhotos } from "react-icons/io";
 import Tooltip from "./Tooltip";
 import { LuUsers, LuSettings, LuLogIn } from "react-icons/lu";
+import { FaFileUpload } from "react-icons/fa";
 
 function Sidebar() {
   const [activeIcon, setActiveIcon] = useState<string>();
@@ -39,12 +40,22 @@ function Sidebar() {
           loading="lazy"
           className="mx-auto w-7.5"
         />
-        <Tooltip text="Galery">
+        <Tooltip text="Galeria de imagenes">
           <Link to="/galery" onClick={() => handleSetActive("Galery")}>
             <IoMdPhotos
               size={30}
               className={`mx-auto ${
-                activeIcon === "Galery" ? "text-black" : "text-gray-400"
+                activeIcon === "Galeria de imagenes" ? "text-black" : "text-gray-400"
+              }`}
+            />
+          </Link>
+        </Tooltip>
+        <Tooltip text="Descifrar imagen externa">
+          <Link to="/upload-2-decrypt" onClick={() => handleSetActive("Users")}>
+            <FaFileUpload
+              size={30}
+              className={`mx-auto ${
+                activeIcon === "Descifrar imagen externa" ? "text-black" : "text-gray-400"
               }`}
             />
           </Link>

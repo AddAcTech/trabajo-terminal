@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Spinner from "./Spinner";
 import { encryptImage } from '../lib/cifrado'; 
-
+import { downloadBlob } from "../lib/download_utils";
 const ImageEncryptor: React.FC<{
   onClose: (imageData?: {
     image: string;
@@ -20,6 +20,7 @@ const ImageEncryptor: React.FC<{
   const [isLoading, setIsLoading] = useState(false);
   const [extraRows, setExtraRows] = useState(0);
   const [extraCols, setExtraCols] = useState(0);
+  const blockSize = 8;
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     setSelectedImage(file);
@@ -32,8 +33,6 @@ const ImageEncryptor: React.FC<{
 
   const modifyImage = async () => {
     if (!selectedImage) return;
-    const blockSize = 8;
-
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
@@ -113,24 +112,26 @@ const ImageEncryptor: React.FC<{
     });
   }
 
-  function downloadBlob(blob: Blob, filename: string) {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
   const downloadJPEG = async () => {
     if (!modifiedImage) return;
     setIsLoading(true);
     try {
-      const blob = await imageToJpegBlob(modifiedImage, 0.85);
-      downloadBlob(blob, "imagen_cifrada.jpg");
+      const blob = await fetch(modifiedImage).then((r) => r.blob());
+
+      await downloadBlob(
+        blob,
+        `${hint}_cifrada`,
+        "jpeg",
+        {
+          extraCols,
+          extraRows,
+          blockSize,
+        }
+      );
+
       setIsLoading(false);
     } catch (error) {
-      console.error("Error al convertir o descargar la imagen:", error);
+      console.error("Error al descargar:", error);
       setIsLoading(false);
     }
   };
