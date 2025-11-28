@@ -61,7 +61,7 @@ function Sidebar() {
           </Link>
         </Tooltip>
         <Tooltip text="Profile">
-          <Link to="/settings" onClick={() => handleSetActive("Users")}>
+          <Link to="/encrypt" onClick={() => handleSetActive("Users")}>
             <LuUsers
               size={30}
               className={`mx-auto ${
@@ -71,7 +71,7 @@ function Sidebar() {
           </Link>
         </Tooltip>
         <Tooltip text="Settings">
-          <Link to="/encrypt" onClick={() => handleSetActive("Settings")}>
+          <Link to="/settings" onClick={() => handleSetActive("Settings")}>
             <LuSettings
               size={30}
               className={`mx-auto ${
