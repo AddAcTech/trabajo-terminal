@@ -47,7 +47,10 @@ function Login() {
       if (responseData.token) {
         localStorage.setItem("token", responseData.token);
       }
-
+      console.log(responseData.user)
+      if(responseData.user.id){
+        localStorage.setItem('id', responseData.user.id); 
+      }
       // Redirect to gallery page after successful login
       toast.success("Inicio de sesión exitoso");
       navigate("/galery");
