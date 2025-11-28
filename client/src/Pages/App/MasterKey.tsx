@@ -13,7 +13,7 @@ export default function MasterKey() {
   const [idUser, setIdUser] = useState<number>();
 
   useEffect(() => {
-    const id_user = localStorage.getItem('id');
+    const id_user = sessionStorage.getItem('id');
         if(id_user == null){
           toast.error("No se encuentra la sesión, incie sesión de nuevo");
           navigate("/login");

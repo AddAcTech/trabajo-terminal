@@ -24,9 +24,14 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    mainkey: {
+    mainKey: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    useUniqueKey: {
+      type: DataTypes.TINYINT,
+      allowNull: false,
+      defaultValue: 0,
     }
   },
   {

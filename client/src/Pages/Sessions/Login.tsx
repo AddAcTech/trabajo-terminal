@@ -43,13 +43,17 @@ function Login() {
       if (!response.ok) {
         throw new Error(responseData.error || "Usuario y/o contraseña ingresados son incorrectos");
       }
-
+      //guardar en el local Storage información fundamental
       if (responseData.token) {
         localStorage.setItem("token", responseData.token);
       }
-      console.log(responseData.user)
+
       if(responseData.user.id){
-        localStorage.setItem('id', responseData.user.id); 
+        sessionStorage.setItem('id', responseData.user.id); 
+      }
+
+      if(responseData.user.useUniqueKey){
+        sessionStorage.setItem('politic', responseData.user.useUniqueKey); 
       }
       // Redirect to gallery page after successful login
       toast.success("Inicio de sesión exitoso");
