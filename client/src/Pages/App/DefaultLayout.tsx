@@ -4,11 +4,11 @@ import { GlobalProvider } from "../../context/GlobalContext"; //para que se guar
 
 export default function DefaultLayout() {
   return (
-    <div className="flex h-screen w-screen ">
+    <div className="flex h-screen w-screen bg-background">
       <Sidebar />
-      <div className="w-full">
+      <div className="flex-1 flex flex-col">
         <GlobalProvider>
-          <main className="flex justify-center h-screen bg-[#edf1f4] bg-cover p-3">
+          <main className="flex-1 overflow-auto">
             <Outlet />
           </main>
         </GlobalProvider>

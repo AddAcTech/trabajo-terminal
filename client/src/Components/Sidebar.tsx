@@ -12,56 +12,48 @@ function Sidebar() {
     setActiveIcon(iconName);
   };
 
-  //   if (!isVerified) {
-  //     return (
-  //       <aside className="text-gray-400 bg-white h-full p-4 lg:flex lg:flex-col justify-around border-r-2 hidden">
-  //         <Lupo width={50} height={50} fill="#225432" />
-  //         <Tooltip text="Settings">
-  //           <Link to="/users" onClick={() => handleSetActive("LuSettings")}>
-  //             <LuSettings
-  //               size={30}
-  //               className={`mx-auto ${
-  //                 activeIcon === "LuSettings"
-  //                   ? "text-levu-cal-green"
-  //                   : "text-gray-400"
-  //               }`}
-  //             />
-  //           </Link>
-  //         </Tooltip>
-  //       </aside>
-  //     );
-  //   }
-
   return (
-    <aside className="text-gray-400 bg-white h-full p-3 lg:flex lg:flex-col justify-between">
+    <aside className="w-16 bg-sidebar border-r border-sidebar-border flex flex-col items-center py-6 gap-8">
       <div className="flex flex-col gap-7 h-full py-4 mt-4">
-        <img
-          src="/favicon-TT.svg"
-          loading="lazy"
-          className="mx-auto w-7.5"
-        />
+        <img src="/favicon-TT.svg" loading="lazy" className="mx-auto w-7.5" />
         <Tooltip text="Galeria de imagenes">
-          <Link to="/galery" onClick={() => handleSetActive("Galery")}>
+          <Link
+            to="/galery"
+            onClick={() => handleSetActive("Galery")}
+            className="w-10 h-10 rounded-lg hover:bg-sidebar-accent/50 flex items-center justify-center text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+          >
             <IoMdPhotos
               size={30}
               className={`mx-auto ${
-                activeIcon === "Galeria de imagenes" ? "text-black" : "text-gray-400"
+                activeIcon === "Galeria de imagenes"
+                  ? "text-black"
+                  : "text-gray-400"
               }`}
             />
           </Link>
         </Tooltip>
         <Tooltip text="Descifrar imagen externa">
-          <Link to="/upload-2-decrypt" onClick={() => handleSetActive("Users")}>
+          <Link
+            to="/upload-2-decrypt"
+            onClick={() => handleSetActive("Users")}
+            className="w-10 h-10 rounded-lg hover:bg-sidebar-accent/50 flex items-center justify-center text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+          >
             <FaFileUpload
               size={30}
               className={`mx-auto ${
-                activeIcon === "Descifrar imagen externa" ? "text-black" : "text-gray-400"
+                activeIcon === "Descifrar imagen externa"
+                  ? "text-black"
+                  : "text-gray-400"
               }`}
             />
           </Link>
         </Tooltip>
         <Tooltip text="Profile">
-          <Link to="/settings" onClick={() => handleSetActive("Users")}>
+          <Link
+            to="/settings"
+            onClick={() => handleSetActive("Users")}
+            className="w-10 h-10 rounded-lg hover:bg-sidebar-accent/50 flex items-center justify-center text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+          >
             <LuUsers
               size={30}
               className={`mx-auto ${
@@ -71,7 +63,11 @@ function Sidebar() {
           </Link>
         </Tooltip>
         <Tooltip text="Settings">
-          <Link to="/encrypt" onClick={() => handleSetActive("Settings")}>
+          <Link
+            to="/encrypt"
+            onClick={() => handleSetActive("Settings")}
+            className="w-10 h-10 rounded-lg hover:bg-sidebar-accent/50 flex items-center justify-center text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+          >
             <LuSettings
               size={30}
               className={`mx-auto ${
@@ -87,6 +83,7 @@ function Sidebar() {
               handleSetActive("Login");
               localStorage.clear();
             }}
+            className="w-10 h-10 rounded-lg hover:bg-sidebar-accent/50 flex items-center justify-center text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
           >
             <LuLogIn
               size={30}
