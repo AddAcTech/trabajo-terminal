@@ -72,7 +72,7 @@ function SignUp() {
         className="p-4 flex flex-col gap-2 w-full md:max-w-sm"
       >
         <h1 className="font-bold text-3xl text-center font-mono mb-2">
-          Create your account
+          Crea tu cuenta
         </h1>
 
         {error && (
@@ -166,7 +166,8 @@ function SignUp() {
             {...register("confirmPassword", {
               required: "Por favor, confirme su contraseña.",
               validate: (value) =>
-                value === password || "Las contraseñas ingresadas no son iguales.",
+                value === password ||
+                "Las contraseñas ingresadas no son iguales.",
             })}
           />
           {errors.confirmPassword && (
