@@ -1,9 +1,15 @@
 import express from "express";
-import { storeUser, loginUser } from "../controllers/users.controller.js";
+import { storeUser, loginUser, verifyMainKey, checkMainKey, storeKey, setKeyPolitic } from "../controllers/users.controller.js";
 
 const router = express.Router();
 
 router.post("/store", storeUser);
 router.post("/login", loginUser);
+
+router.post("/check-key",checkMainKey);
+router.post("/verify-key", verifyMainKey);
+router.post("/set-key", storeKey);
+
+router.post("/update-key-politic", setKeyPolitic);
 
 export default router;

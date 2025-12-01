@@ -193,7 +193,7 @@ const ImageEncryptor: React.FC<{
       onClick={() => onClose()}
     >
       <div
-        className="bg-white p-7 rounded-xl shadow-lg max-h-[90vh] overflow-y-auto "
+        className="bg-white p-7 rounded-xl shadow-lg max-h-[85vh] overflow-y-auto "
         onClick={(e) => e.stopPropagation()}
       >
         <h1 className="text-4xl font-bold mb-6 text-center w-full">

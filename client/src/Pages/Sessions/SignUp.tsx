@@ -10,13 +10,13 @@ type FormData = {
   email: string;
   password: string;
   confirmPassword: string;
+  keyPolitic : "true" | "false";
 };
 
 function SignUp() {
   const navigate = useNavigate();
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-
   const {
     register,
     handleSubmit,
@@ -25,6 +25,7 @@ function SignUp() {
   } = useForm<FormData>();
 
   const password = watch("password");
+  const selectedPolitic = watch("keyPolitic");
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -44,6 +45,7 @@ function SignUp() {
             lastName: data.lastName,
             email: data.email,
             password: data.password,
+            keyPolitic: data.keyPolitic === "true",
           }),
         }
       );
@@ -173,6 +175,54 @@ function SignUp() {
             </p>
           )}
         </div>
+
+        <div className="flex flex-col mt-2">
+          <p className="text-sm mb-1 font-semibold">
+            Política de seguridad de claves
+          </p>
+
+          <div className="flex flex-col gap-1 pl-1">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                value="true"
+                {...register("keyPolitic", {
+                  required: "Debe seleccionar una opción",
+                })}
+              />
+              <span>Usar clave unica</span>
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                value="false"
+                {...register("keyPolitic", {
+                  required: "Debe seleccionar una opción",
+                })}
+              />
+              <span>Permitir uso de claves multiples</span>
+            </label>
+          </div>
+
+          <p className="text-xs text-gray-600 mb-2">
+             {(selectedPolitic === "true") &&
+              "Al activar esta opción, usted debe asignar un clave unica para cifrar y descifrar imagenes, si ingresa una clave distinta, no podrá acceder a sus imagenes."}
+
+            {(selectedPolitic === "false") &&
+              "Al activar esta opción, usted permite ingresar claves distintas por cada sesión para el cifrado y descifrado de imagenes"}
+          </p>
+          <p className="text-xs text-gray-700 italic">
+            Usted puede editar esta configuración en cualquier momento, pero las imagenes ya almacenadas ya han sido cifradas con la clave activa en ese momento, así que requerirá descifrarlas para no perder su acceso a ellas.
+          </p>
+          {errors.keyPolitic && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.keyPolitic.message}
+            </p>
+          )}
+        </div>
+
+        
         <button type="submit" className="sessionsButton" disabled={loading}>
           {loading ? "Procesando..." : "Registrarse"}
         </button>

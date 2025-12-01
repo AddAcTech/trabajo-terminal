@@ -24,6 +24,15 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    mainKey: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    useUniqueKey: {
+      type: DataTypes.TINYINT,
+      allowNull: false,
+      defaultValue: 0,
+    }
   },
   {
     timestamps: true,

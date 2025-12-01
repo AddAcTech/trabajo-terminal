@@ -50,7 +50,7 @@ function Sidebar() {
         </Tooltip>
         <Tooltip text="Profile">
           <Link
-            to="/settings"
+            to="/encrypt"
             onClick={() => handleSetActive("Users")}
             className="w-10 h-10 rounded-lg hover:bg-sidebar-accent/50 flex items-center justify-center text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
           >
@@ -64,7 +64,7 @@ function Sidebar() {
         </Tooltip>
         <Tooltip text="Settings">
           <Link
-            to="/encrypt"
+            to="/settings"
             onClick={() => handleSetActive("Settings")}
             className="w-10 h-10 rounded-lg hover:bg-sidebar-accent/50 flex items-center justify-center text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
           >
