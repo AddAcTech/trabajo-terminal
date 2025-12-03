@@ -1,6 +1,7 @@
 import db from "../../models/index.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { borrarImagen } from "./images.controller.js";
 
 export const storeUser = async (req, res) => {
   try {
@@ -75,12 +76,44 @@ export const loginUser = async (req, res) => {
   }
 };
 
+export const deleteUser = async (req, res) => {
+  try {
+    const { id_user } = req.body;
+    if (id_user == undefined || id_user == null || id_user == 0){ //no hay nada que validar
+      return res.status(401).json({ error: "No se encontró al usuario" });
+    }
+
+    const user = await db.User.findOne({ where: { id : id_user} });
+    if (!user) {
+      return res.status(401).json({ error: "No se encontró al usuario" });
+    }
+    //borrar todas las imagenes de cloudnary:
+    const images = await db.Image.findAll({
+          where: {
+            userId: id_user
+          },
+        });
+    images.map(async (image) => {
+      await borrarImagen(image.publicId);
+    });
+    //una vez se ejecuta la instrucción de borrar, 
+    await user.destroy();
+
+    return res.status(200).json({
+      message: "Usuario borrado con exito"
+    });
+  } catch (error) {
+    console.error("Error verificando la clave maestra:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 //indica si el atributo MainKey ha sido asignado, pero solo se se tiene activa la politica de 
 export const verifyMainKey = async (req, res) => {
   try {
     const { id_user } = req.body;
     if (id_user == undefined || id_user == null || id_user == 0){ //no hay nada que validar
-      return
+      return res.status(401).json({ error: "No se encontró el identificador del usuario" });
     }
     const user = await db.User.findOne({ where: { id : id_user} });
 
