@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
 
 type FormData = {
   keyPolitic: "true" | "false";
@@ -24,19 +23,19 @@ export default function Settings() {
   // Cargar configuración actual del usuario
   useEffect(() => {
     const politic = sessionStorage.getItem("politic");
-    setValue("keyPolitic",politic?"true":"false");
+    setValue("keyPolitic", politic ? "true" : "false");
   }, [setValue]);
 
   // Guardar cambios
   const onSubmit = async (form: FormData) => {
-     const confirmAction = window.confirm(
-    "¿Está seguro de que desea modificar esta configuración? Esto cerrará su sesión y deberá volver a iniciar sesión."
-  );
+    const confirmAction = window.confirm(
+      "¿Está seguro de que desea modificar esta configuración? Esto cerrará su sesión y deberá volver a iniciar sesión."
+    );
 
-  if (!confirmAction) {
-    toast.info("Operación cancelada");
-    return;
-  }
+    if (!confirmAction) {
+      toast.info("Operación cancelada");
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -103,19 +102,17 @@ export default function Settings() {
           </label>
 
           {errors.keyPolitic && (
-            <p className="text-red-500 text-xs">
-              {errors.keyPolitic.message}
-            </p>
+            <p className="text-red-500 text-xs">{errors.keyPolitic.message}</p>
           )}
         </div>
 
         {/* Texto dinámico */}
         <p className="text-sm text-gray-700 mt-2 min-h-10">
-          {(selected === "true") &&
-              "Al activar esta opción, usted debe asignar un clave unica para cifrar y descifrar imagenes, si ingresa una clave distinta, no podrá acceder a sus imagenes."}
+          {selected === "true" &&
+            "Al activar esta opción, usted debe asignar un clave unica para cifrar y descifrar imagenes, si ingresa una clave distinta, no podrá acceder a sus imagenes."}
 
-            {(selected === "false") &&
-              "Al activar esta opción, usted permite ingresar claves distintas por cada sesión para el cifrado y descifrado de imagenes"}
+          {selected === "false" &&
+            "Al activar esta opción, usted permite ingresar claves distintas por cada sesión para el cifrado y descifrado de imagenes"}
         </p>
         <button className="sessionsButton mt-4" type="submit">
           Guardar cambios

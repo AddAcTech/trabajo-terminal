@@ -3,12 +3,16 @@ import Sidebar from "../../Components/Sidebar";
 import { GlobalProvider } from "../../context/GlobalContext"; //para que se guarde la clave maestra
 
 export default function DefaultLayout() {
+  if (!localStorage.getItem("token")) {
+    window.location.href = "/login";
+  }
+
   return (
-    <div className="flex h-screen w-screen ">
+    <div className="flex h-screen w-screen bg-background">
       <Sidebar />
-      <div className="w-full">
+      <div className="flex-1 flex flex-col">
         <GlobalProvider>
-          <main className="flex justify-center h-screen bg-[#edf1f4] bg-cover p-3">
+          <main className="flex-1 overflow-auto">
             <Outlet />
           </main>
         </GlobalProvider>

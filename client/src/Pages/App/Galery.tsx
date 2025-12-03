@@ -3,10 +3,15 @@ import { ImageProps } from "../../Components/Image";
 import Image from "../../Components/Image";
 import ImageEncryptor from "../../Components/ImageEncryptor";
 import { toast } from "react-toastify";
-import { SortBy, SortOrder, formatBytes, sortImages } from "../../lib/sortUtils";
-import { TbSortAscending2, TbSortDescending2 } from "react-icons/tb";
+import {
+  SortBy,
+  SortOrder,
+  formatBytes,
+  sortImages,
+} from "../../lib/sortUtils";
 import { useGlobal } from "../../context/GlobalContext";
 import AnuncioRedireccion from "../../Components/AnuncioRedireccion";
+import { LuArrowDownUp, LuArrowUpDown, LuPlus } from "react-icons/lu";
 
 // Mover fuera del componente
 type ImageData = {
@@ -95,12 +100,13 @@ function Galery() {
   useEffect(() => {
     const sorted = sortImages(myImages, sortBy, sortOrder);
     setMyImages(sorted);
-  }, [sortBy, sortOrder]);
-
+  }, [sortBy, sortOrder, myImages]);
 
   // Cambia ascendente/descendente
   const toggleSortOrder = () => {
-    setSortOrder((prev) => (prev === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC));
+    setSortOrder((prev) =>
+      prev === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC
+    );
   };
 
   //preservar al recargar la página, tal vez se quite
@@ -116,66 +122,73 @@ function Galery() {
     if (savedOrder) setSortOrder(savedOrder);
   }, []);
 
-  //Manipulación de la barra de herramientas
-  const [isScrolled, setIsScrolled] = useState<boolean>(false);
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <div className="relative">
-      {/* Pop - up cuando se necesita */}
-
       {showOverlay && <AnuncioRedireccion />}
 
-      <div className={`flex fixed w-17/18 gap-2 justify-between items-center bg-neutral-900 text-white px-4 py-3 mr-1 rounded-lg shadow-md transition-all duration-300
-           ${isScrolled
-            ? "bg-neutral-900/70 backdrop-blur-md"
-            : "bg-neutral-900"}`}>
-        <button
-          className="bg-neutral-700 text-white py-2 px-4 rounded-lg hover:bg-neutral-500 transition-all"
-          onClick={handleOpenModal}
-        >
-          Subir nueva imagen
-        </button>
-        <div className="flex items-center gap-2">
-          <label htmlFor="sort" className="text-sm text-neutral-300">
-            Ordenar por:
-          </label>
-          <select
-            id="sort"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortBy)}
-            className="bg-neutral-800 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value={SortBy.HINT}>Título</option>
-            <option value={SortBy.SIZE}>Tamaño</option>
-            <option value={SortBy.DATE}>Fecha de subida</option>
-          </select>
+      <header className="bg-card border-b border-border px-8 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-semibold text-foreground">
+              Mis Imágenes
+            </h1>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
+              {myImages.length} archivos
+            </span>
+          </div>
 
-          <button
-            onClick={toggleSortOrder}
-            className="bg-neutral-700 hover:bg-neutral-600 px-3 py-2 rounded-md flex items-center justify-center text-lg transition-all"
-            aria-label={sortOrder === SortOrder.ASC ? "Ascendente" : "Descendente"}
-          >
-            {sortOrder === SortOrder.ASC ? <TbSortAscending2 /> : <TbSortDescending2 />}
-          </button>
+          <div className="flex items-center gap-2">
+            <label htmlFor="sort" className="text-sm text-neutral-300">
+              Ordenar por:
+            </label>
+            <select
+              id="sort"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortBy)}
+              className="bg-neutral-800 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value={SortBy.HINT}>Título</option>
+              <option value={SortBy.SIZE}>Tamaño</option>
+              <option value={SortBy.DATE}>Fecha de subida</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleSortOrder}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 cursor-pointer transition-colors"
+            >
+              {sortOrder === SortOrder.ASC ? (
+                <LuArrowUpDown className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <LuArrowDownUp className="w-4 h-4 text-muted-foreground" />
+              )}
+              <span className="text-sm text-muted-foreground">
+                Fecha de subida
+              </span>
+            </button>
+
+            <button
+              onClick={handleOpenModal}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 px-3 py-2 rounded-lg flex justify-center items-center p-2"
+            >
+              <LuPlus className="w-4 h-4" />
+              <span>Subir imagen</span>
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="flex flex-wrap justify-between gap-4 pt-2 mt-16">
-        {myImages.map((image) => (
-          <Image
-            key={image.id}
-            image={image}
-            claveMaestra={claveMaestra}
-            onDeleted={handleImageDeleted}
-          />
-        ))}
+      <div className="p-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {myImages.map((image) => (
+            <Image
+              key={image.id}
+              image={image}
+              claveMaestra={claveMaestra}
+              onDeleted={handleImageDeleted}
+            />
+          ))}
+        </div>
       </div>
       {isModalOpen && (
         <ImageEncryptor
@@ -183,14 +196,21 @@ function Galery() {
           claveMaestra={claveMaestra}
         />
       )}
-      <div className="
-        fixed bottom-4 left-16 
-        bg-neutral-900/60 backdrop-blur-sm 
-        text-white px-4 py-2 rounded-lg 
-        shadow-lg text-sm
-        pointer-events-none select-none ">
-        Espacio total <br/>
-        ocupado: {formatBytes(espacioTotal)}
+
+      <div className="bg-card border-t border-border px-8 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground">
+              Espacio total ocupado
+            </p>
+            <p className="text-sm font-medium text-foreground">
+              {formatBytes(espacioTotal)}
+            </p>
+          </div>
+          <div className="h-1.5 w-48 bg-muted rounded-full overflow-hidden">
+            <div className="h-full w-1/4 bg-gradient-to-r from-primary to-accent rounded-full" />
+          </div>
+        </div>
       </div>
     </div>
   );

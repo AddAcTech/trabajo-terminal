@@ -6,7 +6,7 @@ import { downloadBlob, readMetadataFromFile } from "../lib/download_utils";
 import ImageInspector from "./ImageInspector";
 
 const UploadImageDecryptor: React.FC = () => {
-  const [file, setFile] = useState<File | null>(null);
+  const [, setFile] = useState<File | null>(null);
   const [clave, setClave] = useState("");
   const [metadata, setMetadata] = useState<{
     blockSize: number;
@@ -19,8 +19,9 @@ const UploadImageDecryptor: React.FC = () => {
 
   const [loadingMeta, setLoadingMeta] = useState(false);
   const [loadingDecrypt, setLoadingDecrypt] = useState(false);
-  const [downloadFormat, setDownloadFormat] =
-    useState<"jpeg" | "png" | "gif">("jpeg");
+  const [downloadFormat, setDownloadFormat] = useState<"jpeg" | "png" | "gif">(
+    "jpeg"
+  );
 
   const [showEncryptedPreview, setShowEncryptedPreview] = useState(false);
   const [showDecryptedPreview, setShowDecryptedPreview] = useState(false);
@@ -28,9 +29,7 @@ const UploadImageDecryptor: React.FC = () => {
   // ------------------------------------------------------------
   //   Cargar archivo y extraer EXIF + mostrar preview
   // ------------------------------------------------------------
-  const handleFileUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     if (!file) return;
 
@@ -45,7 +44,9 @@ const UploadImageDecryptor: React.FC = () => {
       const meta = await readMetadataFromFile(file);
 
       if (!meta) {
-        alert("La imagen no contiene los metadatos necesarios para el descifrado.");
+        alert(
+          "La imagen no contiene los metadatos necesarios para el descifrado."
+        );
         setLoadingMeta(false);
         return;
       }
@@ -89,12 +90,7 @@ const UploadImageDecryptor: React.FC = () => {
         if (!ctx) return;
 
         ctx.drawImage(img, 0, 0);
-        const imageData = ctx.getImageData(
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
         const { image: decryptedImage } = await decryptImage(
           imageData,
@@ -137,7 +133,10 @@ const UploadImageDecryptor: React.FC = () => {
       <h1 className="text-3xl font-bold mb-6 text-center">
         Descifrar Imagen subida
       </h1>
-      <p>Si tiene una imagen cifrada almacenada por otros medios, aquí puede descifrarla</p>
+      <p>
+        Si tiene una imagen cifrada almacenada por otros medios, aquí puede
+        descifrarla
+      </p>
       {/* Subir archivo */}
       <input
         type="file"
@@ -149,7 +148,7 @@ const UploadImageDecryptor: React.FC = () => {
       {loadingMeta && <p className="mb-4">Leyendo información...</p>}
 
       {/* Mostrar metadatos */}
-      { /*metadata && (
+      {/*metadata && (
         <div className="mb-4 border p-3 rounded bg-gray-50">
           <p className="font-semibold">Metadatos detectados:</p>
           <p>BlockSize: {metadata.blockSize}</p>
@@ -232,10 +231,7 @@ const UploadImageDecryptor: React.FC = () => {
             <option value="gif">GIF</option>
           </select>
 
-          <button
-            onClick={handleDownload}
-            className="sessionsButton w-full"
-          >
+          <button onClick={handleDownload} className="sessionsButton w-full">
             Descargar imagen descifrada
           </button>
         </>

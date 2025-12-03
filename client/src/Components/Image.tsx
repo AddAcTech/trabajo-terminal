@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { BsDownload, BsTrash } from "react-icons/bs";
 import Download from "./Download";
 import Delete from "./Delete";
 import ImageInspector from "./ImageInspector";
+import { LuDownload, LuTrash2 } from "react-icons/lu";
 
-//el cuerpo de una imágen, traida de la base de datos
 export type ImageProps = {
   date: string;
   hint: string;
@@ -66,7 +65,7 @@ function Image({
   };
   //TODO obtener las columnas extras de la base de datos y añadirlas a los parametros
   return (
-    <div className="flex flex-col gap-4 p-4 shadow rounded-xl bg-white mx-auto">
+    <div className="group bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors">
       {deleteOpen && (
         <Delete
           isOpen={deleteOpen}
@@ -87,38 +86,53 @@ function Image({
           claveMaestra={claveMaestra}
         />
       )}
-      <div className="flex justify-end items-center gap-2 font-bold">
+      {/* <div className="flex justify-end items-center gap-2 font-bold">
         <button
           className="hover:text-blue-500 transition-all duration-300 ease-in-out self-end cursor-pointer"
           onClick={handleOpenModal}
         >
           <BsDownload />
         </button>
-        <button
-          className="hover:text-red-500 transition-all duration-300 ease-in-out self-end cursor-pointer"
-          onClick={handleOpenDelete}
-        >
-          <BsTrash />
-        </button>
-      </div>
-      <div>
+      </div> */}
+      <div className="relative aspect-square bg-muted overflow-hidden">
         <img
           src={image.image}
           loading="lazy"
-          className="bg-gray-700 h-32 w-60 rounded-xl cursor-pointer"
           onClick={() => setVerImagen(true)}
+          className="object-cover w-full h-full"
         />
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+          <button
+            onClick={handleOpenModal}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg p-4 hover:cursor-pointer"
+          >
+            <LuDownload />
+          </button>
+          <button
+            onClick={handleOpenDelete}
+            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg p-4 hover:cursor-pointer"
+          >
+            <LuTrash2 />
+          </button>
+        </div>
       </div>
-      <div>
-        <p>{image.date}</p>
-        <p>{image.hint}</p>
-        <p>
+      <div className="p-3">
+        <p className="text-xs text-muted-foreground mb-2">
+          {new Date(image.date).toLocaleDateString()}
+        </p>
+        <h3 className="text-sm font-medium text-foreground truncate mb-1">
+          {image.hint}
+        </h3>
+        <p className="text-xs text-muted-foreground">
           {image.bytes
             ? (image.bytes / 1024).toFixed(2) + " KB"
             : "Desconocido"}
         </p>
       </div>
-       {verImagen && <ImageInspector src={image.image} onClose={() => setVerImagen(false)} />}
+
+      {verImagen && (
+        <ImageInspector src={image.image} onClose={() => setVerImagen(false)} />
+      )}
     </div>
   );
 }
