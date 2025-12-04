@@ -80,7 +80,7 @@ export const verifyMainKey = async (req, res) => {
   try {
     const { id_user } = req.body;
     if (id_user == undefined || id_user == null || id_user == 0){ //no hay nada que validar
-      return
+      return res.status(401).json({ error: "No se encontró al usuario" });
     }
     const user = await db.User.findOne({ where: { id : id_user} });
 
@@ -89,7 +89,7 @@ export const verifyMainKey = async (req, res) => {
     }
     const hasMasterKey = user.mainKey != null 
       && user.useUniqueKey == 1 //Si mainKey es null, y se tiene activada la politica, entonces no hay una clave asignada
-    console.log(`Usuario ${id_user} ${hasMasterKey?'':'NO'} tiene una clave asignada`)
+    //console.log(`Usuario ${id_user} ${hasMasterKey?'':'NO'} tiene una clave asignada`)
     return res.status(200).json({
       poseeClaveMaestra : hasMasterKey
     });
@@ -109,9 +109,8 @@ export const checkMainKey = async (req, res) => {
     if (!user) {
       return res.status(401).json({ error: "No se encontró al usuario" });
     }
-    
     const isKeyValid = user.useUniqueKey == 0 || //si vale cero (false), entonces no importa que envíe, por que no se necesita verificar la igualdad
-    await bcrypt.compare(key, user.mainey); //si vale uno (true), entonces si hayq ue verificar que sea igual
+    await bcrypt.compare(key, user.mainKey); //si vale uno (true), entonces si hay que verificar que sea igual
     if (!isKeyValid) {
       return res.status(401).json({ error: "Clave maestra invalida" });
     }
