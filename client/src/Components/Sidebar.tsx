@@ -26,7 +26,7 @@ function Sidebar() {
               size={30}
               className={`mx-auto ${
                 activeIcon === "Galeria de imagenes"
-                  ? "text-black"
+                  ? "text-violet-400"
                   : "text-gray-400"
               }`}
             />
@@ -42,7 +42,7 @@ function Sidebar() {
               size={30}
               className={`mx-auto ${
                 activeIcon === "Descifrar imagen externa"
-                  ? "text-black"
+                  ? "text-violet-400"
                   : "text-gray-400"
               }`}
             />
@@ -57,7 +57,7 @@ function Sidebar() {
             <LuUsers
               size={30}
               className={`mx-auto ${
-                activeIcon === "Users" ? "text-black" : "text-gray-400"
+                activeIcon === "Users" ? "text-violet-400" : "text-gray-400"
               }`}
             />
           </Link>
@@ -71,7 +71,7 @@ function Sidebar() {
             <LuSettings
               size={30}
               className={`mx-auto ${
-                activeIcon === "Settings" ? "text-black" : "text-gray-400"
+                activeIcon === "Settings" ? "text-violet-400" : "text-gray-400"
               }`}
             />
           </Link>
@@ -88,7 +88,7 @@ function Sidebar() {
             <LuLogIn
               size={30}
               className={`mx-auto ${
-                activeIcon === "Login" ? "text-black" : "text-gray-400"
+                activeIcon === "Login" ? "text-violet-400" : "text-gray-400"
               }`}
             />
           </Link>

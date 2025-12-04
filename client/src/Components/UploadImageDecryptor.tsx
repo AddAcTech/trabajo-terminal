@@ -1,9 +1,9 @@
-"use client";
-
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { decryptImage } from "../lib/cifrado";
 import { downloadBlob, readMetadataFromFile } from "../lib/download_utils";
 import ImageInspector from "./ImageInspector";
+import { LuDownload, LuLock, LuLockOpen } from "react-icons/lu";
 
 const UploadImageDecryptor: React.FC = () => {
   const [, setFile] = useState<File | null>(null);
@@ -26,9 +26,6 @@ const UploadImageDecryptor: React.FC = () => {
   const [showEncryptedPreview, setShowEncryptedPreview] = useState(false);
   const [showDecryptedPreview, setShowDecryptedPreview] = useState(false);
 
-  // ------------------------------------------------------------
-  //   Cargar archivo y extraer EXIF + mostrar preview
-  // ------------------------------------------------------------
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     if (!file) return;
@@ -53,7 +50,6 @@ const UploadImageDecryptor: React.FC = () => {
 
       setMetadata(meta);
 
-      // Cargar la preview
       const src = URL.createObjectURL(file);
       setEncryptedSrc(src);
     } catch (error) {
@@ -64,9 +60,6 @@ const UploadImageDecryptor: React.FC = () => {
     setLoadingMeta(false);
   };
 
-  // ------------------------------------------------------------
-  //   DESCIFRADO
-  // ------------------------------------------------------------
   const handleDecrypt = async () => {
     if (!encryptedSrc || !metadata) return;
 
@@ -117,9 +110,6 @@ const UploadImageDecryptor: React.FC = () => {
     setLoadingDecrypt(false);
   };
 
-  // ------------------------------------------------------------
-  //   DESCARGAR DESCIFRADA
-  // ------------------------------------------------------------
   const handleDownload = async () => {
     if (!decryptedSrc) return;
 
@@ -129,113 +119,161 @@ const UploadImageDecryptor: React.FC = () => {
   };
 
   return (
-    <div className="p-8 max-w-xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">
-        Descifrar Imagen subida
-      </h1>
-      <p>
-        Si tiene una imagen cifrada almacenada por otros medios, aquí puede
-        descifrarla
-      </p>
-      {/* Subir archivo */}
-      <input
-        type="file"
-        accept="image/jpeg,image/png"
-        className="sessionsInput mb-4"
-        onChange={handleFileUpload}
-      />
-
-      {loadingMeta && <p className="mb-4">Leyendo información...</p>}
-
-      {/* Mostrar metadatos */}
-      {/*metadata && (
-        <div className="mb-4 border p-3 rounded bg-gray-50">
-          <p className="font-semibold">Metadatos detectados:</p>
-          <p>BlockSize: {metadata.blockSize}</p>
-          <p>Extra Rows: {metadata.extraRows}</p>
-          <p>Extra Cols: {metadata.extraCols}</p>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        {/* Header */}
+        <div className="mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-balance">
+            Descifrar imagen subida
+          </h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Si tienes una imagen cifrada por nuestra aplicación y almacenada por
+            otros medios, aquí puedes descifrarla de forma segura
+          </p>
         </div>
-      )*/}
-
-      {/* Input clave */}
-      <input
-        type="password"
-        placeholder="Clave de descifrado"
-        className="sessionsInput mb-4"
-        value={clave}
-        onChange={(e) => setClave(e.target.value)}
-      />
-
-      {/* Imagen cifrada */}
-      {encryptedSrc && (
-        <div className="mb-4">
-          <h3 className="font-semibold">Imagen cifrada:</h3>
-
-          <img
-            src={encryptedSrc}
-            className="bg-gray-700 h-48 w-full rounded-xl object-cover cursor-pointer"
-            onClick={() => setShowEncryptedPreview(true)}
-          />
-
-          {showEncryptedPreview && (
-            <ImageInspector
-              src={encryptedSrc}
-              onClose={() => setShowEncryptedPreview(false)}
-            />
-          )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold">
+                Seleccionar imagen cifrada
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  id="file-upload"
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-border rounded-lg hover:bg-card cursor-pointer transition-colors"
+                >
+                  <div className="text-center">
+                    <LuLock className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm font-medium">
+                      Haz clic o arrastra una imagen
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      JPEG o PNG
+                    </p>
+                  </div>
+                </label>
+              </div>
+              {loadingMeta && (
+                <p className="text-sm text-muted-foreground">
+                  Leyendo información...
+                </p>
+              )}
+            </div>
+            <div className="space-y-3">
+              <label htmlFor="clave" className="block text-sm font-semibold">
+                Clave de descifrado
+              </label>
+              <input
+                id="clave"
+                type="password"
+                placeholder="Ingresa tu clave privada"
+                className="w-full px-4 py-2.5 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                value={clave}
+                onChange={(e) => setClave(e.target.value)}
+              />
+            </div>
+            {metadata && (
+              <button
+                onClick={handleDecrypt}
+                disabled={loadingDecrypt}
+                className="w-full px-4 py-2.5 bg-primary hover:bg-accent text-primary-foreground font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <LuLockOpen className="w-4 h-4" />
+                {loadingDecrypt ? "Descifrando..." : "Descifrar imagen"}
+              </button>
+            )}
+            {encryptedSrc && (
+              <div className="space-y-3">
+                <p className="text-sm font-semibold flex items-center gap-2">
+                  <LuLock className="w-4 h-4" />
+                  Imagen cifrada
+                </p>
+                <img
+                  src={encryptedSrc || "/placeholder.svg"}
+                  alt="Encrypted"
+                  className="w-full h-48 sm:h-56 bg-card rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity border border-border"
+                  onClick={() => setShowEncryptedPreview(true)}
+                />
+                {showEncryptedPreview && (
+                  <ImageInspector
+                    src={encryptedSrc || "/placeholder.svg"}
+                    onClose={() => setShowEncryptedPreview(false)}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+          <div className="space-y-6">
+            {decryptedSrc ? (
+              <>
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold flex items-center gap-2">
+                    <LuLockOpen className="w-4 h-4 text-primary" />
+                    Imagen descifrada
+                  </p>
+                  <img
+                    src={decryptedSrc || "/placeholder.svg"}
+                    alt="Decrypted"
+                    className="w-full h-48 sm:h-56 bg-card rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity border border-border"
+                    onClick={() => setShowDecryptedPreview(true)}
+                  />
+                  {showDecryptedPreview && (
+                    <ImageInspector
+                      src={decryptedSrc || "/placeholder.svg"}
+                      onClose={() => setShowDecryptedPreview(false)}
+                    />
+                  )}
+                </div>
+                <div className="space-y-3">
+                  <label
+                    htmlFor="format"
+                    className="block text-sm font-semibold"
+                  >
+                    Formato de descarga
+                  </label>
+                  <select
+                    id="format"
+                    value={downloadFormat}
+                    onChange={(e) =>
+                      setDownloadFormat(
+                        e.target.value as "jpeg" | "png" | "gif"
+                      )
+                    }
+                    className="w-full px-4 py-2.5 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                  >
+                    <option value="jpeg">JPEG</option>
+                    <option value="png">PNG</option>
+                    <option value="gif">GIF</option>
+                  </select>
+                </div>
+                <button
+                  onClick={handleDownload}
+                  className="w-full px-4 py-2.5 bg-primary hover:bg-accent text-primary-foreground font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <LuDownload className="w-4 h-4" />
+                  Descargar imagen descifrada
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-64 sm:h-72 bg-card border-2 border-dashed border-border rounded-lg">
+                <div className="text-center">
+                  <LuLockOpen className="w-8 h-8 mx-auto mb-2 text-muted-foreground opacity-50" />
+                  <p className="text-sm text-muted-foreground">
+                    Descifra una imagen para verla aquí
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      )}
-
-      {/* Botón descifrar */}
-      {metadata && (
-        <button
-          onClick={handleDecrypt}
-          disabled={loadingDecrypt}
-          className="sessionsButton mb-4 w-full"
-        >
-          {loadingDecrypt ? "Descifrando..." : "Descifrar"}
-        </button>
-      )}
-
-      {/* Imagen descifrada */}
-      {decryptedSrc && (
-        <>
-          <h3 className="font-semibold mb-2">Imagen descifrada:</h3>
-
-          <img
-            src={decryptedSrc}
-            className="bg-gray-200 h-48 w-full rounded-xl object-cover cursor-pointer mb-4"
-            onClick={() => setShowDecryptedPreview(true)}
-          />
-
-          {showDecryptedPreview && (
-            <ImageInspector
-              src={decryptedSrc}
-              onClose={() => setShowDecryptedPreview(false)}
-            />
-          )}
-
-          {/* Formato */}
-          <label className="block font-semibold mb-1">
-            Formato de descarga:
-          </label>
-          <select
-            value={downloadFormat}
-            onChange={(e) =>
-              setDownloadFormat(e.target.value as "jpeg" | "png" | "gif")
-            }
-            className="border rounded px-2 py-1 mb-3 w-full"
-          >
-            <option value="jpeg">JPEG</option>
-            <option value="png">PNG</option>
-            <option value="gif">GIF</option>
-          </select>
-
-          <button onClick={handleDownload} className="sessionsButton w-full">
-            Descargar imagen descifrada
-          </button>
-        </>
-      )}
+      </div>
     </div>
   );
 };
