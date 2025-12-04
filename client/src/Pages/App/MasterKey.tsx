@@ -21,7 +21,7 @@ export default function MasterKey() {
       //un else redundante, pero así el tipado me deja continuar
       setIdUser(parseInt(id_user));
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (idUser == 0)
