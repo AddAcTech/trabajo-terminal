@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { decryptImage } from "../lib/cifrado";
 import { downloadBlob } from "../lib/download_utils";
 import ImageInspector from "./ImageInspector";
+import { LuDownload, LuLock, LuLockOpen, LuX } from "react-icons/lu";
 
 type DownloadProps = {
   onClose: () => void;
@@ -10,28 +11,31 @@ type DownloadProps = {
   blockSize: number;
   extraCols: number;
   extraRows: number;
-  claveMaestra : string | null;
+  claveMaestra: string | null;
 };
 
 const Download: React.FC<DownloadProps> = ({
   onClose,
   hint,
   src,
- 
+
   blockSize,
   extraCols,
-  extraRows, claveMaestra,
+  extraRows,
+  claveMaestra,
 }) => {
   //const [password, setPassword] = useState("");
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [decryptedSrc, setDecryptedSrc] = useState<string | null>(null);
-  const [downloadFormat, setDownloadFormat] = useState<"jpeg" | "png" | "gif">("jpeg");
+  const [downloadFormat, setDownloadFormat] = useState<"jpeg" | "png" | "gif">(
+    "jpeg"
+  );
 
   const [verImagenCifrada, setVerImagenCifrada] = useState(false);
   const [verImagenDescifrada, setVerImagenDescifrada] = useState(false);
 
-  if(!claveMaestra){
-    return 
+  if (!claveMaestra) {
+    return;
   }
 
   const handleDecrypt = async () => {
@@ -88,74 +92,126 @@ const Download: React.FC<DownloadProps> = ({
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
       <div
-       
-        className="bg-white p-4 rounded-xl shadow-lg max-h-[90vh] overflow-y-auto w-11/12 max-w-md"
-       
+        className="bg-card border border-border rounded-lg shadow-xl max-h-[90vh] overflow-y-auto w-full max-w-2xl"
         onClick={(e) => e.stopPropagation()}
-      
       >
-        <h2 className="text-xl font-bold mb-4 text-center">
-          {hint}
-        </h2>
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+            <LuLock className="w-5 h-5 text-primary" />
+            {"Imagen: " + hint}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Cerrar modal"
+          >
+            <LuX className="w-5 h-5" />
+          </button>
+        </div>
 
-        {/* Imagen cifrada */}
-        <img
-          src={src}
-          loading="lazy"
-          className="bg-gray-700 h-36 w-70 rounded-xl mb-4 object-cover mx-auto"
-          onClick={() => setVerImagenCifrada(true)}
-        />
-        {verImagenCifrada && <ImageInspector src={src} onClose={() => setVerImagenCifrada(false)} />}
-      
-        {/* Botón para descifrar */}
-        <button
-          onClick={handleDecrypt}
-          disabled={isDecrypting}
-          className="sessionsButton mb-4 disabled:opacity-50"
-        >
-          {isDecrypting ? "Descifrando..." : "Descifrar imagen"}
-        </button>
-
-        {/* Vista previa imagen descifrada */}
-        {decryptedSrc && (
-          <>
-            <h3 className="font-semibold mb-2">Vista previa:</h3>
-            <img
-              src={decryptedSrc}
-              className="bg-gray-200 h-36 w-70 rounded-xl mb-4 object-cover mx-auto"
-              onClick={() => setVerImagenDescifrada(true)}
-            />
-
-            {verImagenDescifrada && <ImageInspector src={decryptedSrc} onClose={() => setVerImagenDescifrada(false)} />}
-
-            {/* Selección de formato */}
-            <div className="flex justify-between">
-              <label className="block font-semibold mb-1">Formato de descarga:</label>
-              <select
-                value={downloadFormat}
-                onChange={(e) => setDownloadFormat(e.target.value as "jpeg" | "png" | "gif")}
-                className="border rounded px-2 py-1 mb-3 w-full min-w-fit"
-              >
-                <option value="jpeg">JPEG</option>
-                <option value="png">PNG</option>
-                <option value="gif">GIF</option>
-              </select>
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="font-medium text-foreground text-sm">
+                  Imagen cifrada
+                </h3>
+              </div>
+              <img
+                src={src}
+                loading="lazy"
+                alt="Encrypted"
+                onClick={() => setVerImagenCifrada(true)}
+                className="bg-secondary h-40 w-full rounded-lg object-cover border border-border hover:border-primary transition-colors cursor-pointer"
+              />
+              {verImagenCifrada && (
+                <ImageInspector
+                  src={src}
+                  onClose={() => setVerImagenCifrada(false)}
+                />
+              )}
             </div>
-            {/* Botón de descarga */}
-            <button
-              onClick={handleDownload}
-              className="sessionsButton"
-            >
-              Descargar imagen descifrada
-            </button>
-          </>
-        )}
+
+            {decryptedSrc && (
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="font-medium text-foreground text-sm">
+                    Imagen descifrada
+                  </h3>
+                </div>
+                <img
+                  onClick={() => setVerImagenDescifrada(true)}
+                  src={decryptedSrc || "/placeholder.svg"}
+                  alt="Decrypted"
+                  className="bg-secondary h-40 w-full rounded-lg object-cover border border-border hover:border-accent transition-colors cursor-pointer"
+                />
+                {verImagenDescifrada && (
+                  <ImageInspector
+                    src={decryptedSrc}
+                    onClose={() => setVerImagenDescifrada(false)}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            {!decryptedSrc && (
+              <button
+                onClick={handleDecrypt}
+                disabled={isDecrypting}
+                className="w-full bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-primary-foreground font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <LuLockOpen className="w-4 h-4" />
+                {isDecrypting ? "Descifrando..." : "Descifrar imagen"}
+              </button>
+            )}
+
+            {decryptedSrc && (
+              <div className="space-y-3">
+                <div className="flex flex-col gap-2">
+                  <label className="font-medium text-foreground text-sm">
+                    Formato de descarga
+                  </label>
+                  <select
+                    value={downloadFormat}
+                    onChange={(e) =>
+                      setDownloadFormat(
+                        e.target.value as "jpeg" | "png" | "gif"
+                      )
+                    }
+                    className="bg-input border border-border text-foreground rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                  >
+                    <option value="jpeg">JPEG</option>
+                    <option value="png">PNG</option>
+                    <option value="gif">GIF</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={handleDownload}
+                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <LuDownload className="w-4 h-4" />
+                  Descargar imagen descifrada
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 p-4 bg-secondary rounded-lg border border-border">
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              Esta imagen se descifrará temporalmente en tu navegador. Ningún
+              dato se envía a servidores externos. La imagen descifrada se
+              descarga directamente a tu dispositivo.
+            </p>
+          </div>
+        </div>
       </div>
-      
     </div>
   );
 };
