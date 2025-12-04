@@ -115,7 +115,10 @@ export default function MasterKey() {
   return (
     <main className="flex-1 overflow-auto p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 md:p-8">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 md:p-8"
+        >
           <h1 className="text-2xl md:text-3xl font-semibold text-neutral-50 mb-2 text-balance">
             Establece tu clave global
           </h1>
@@ -146,15 +149,15 @@ export default function MasterKey() {
               descifrar tus imágenes. No compartir esta clave con nadie.
             </p>
           </div>
-          <form onSubmit={handleSubmit} className="flex gap-3">
+          <div className="flex gap-3">
             <button
               type="submit"
               className="flex-1 bg-violet-600 hover:bg-violet-700 disabled:bg-neutral-800 disabled:text-neutral-600 text-white rounded-lg px-6 py-3 font-medium transition-colors"
             >
               Guardar clave
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
         <div className="mt-8 p-6 bg-neutral-900 border border-neutral-800 rounded-lg">
           <h2 className="text-sm font-semibold text-neutral-50 mb-3">
             ¿Por qué necesitamos una clave maestra?
