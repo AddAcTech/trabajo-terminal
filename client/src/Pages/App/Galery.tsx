@@ -126,8 +126,8 @@ function Galery() {
     <div className="relative">
       {showOverlay && <AnuncioRedireccion />}
 
-      <header className="bg-card border-b border-border px-8 py-4">
-        <div className="flex items-center justify-between">
+      <header className="bg-card border-b border-neutral-800 px-8 py-4">
+        <div className="flex flex-col sm:flex-row items-center gap-2 justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-semibold text-foreground">
               Mis Imágenes
@@ -136,43 +136,36 @@ function Galery() {
               {myImages.length} archivos
             </span>
           </div>
-
           <div className="flex items-center gap-2">
-            <label htmlFor="sort" className="text-sm text-neutral-300">
-              Ordenar por:
-            </label>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleOpenModal}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 px-3 py-2 rounded-lg flex justify-center items-center p-2"
+              >
+                <LuPlus className="w-4 h-4" />
+                <span>Subir imagen</span>
+              </button>
+            </div>
             <select
               id="sort"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortBy)}
-              className="bg-neutral-800 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="bg-neutral-800 text-white h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value={SortBy.HINT}>Título</option>
               <option value={SortBy.SIZE}>Tamaño</option>
-              <option value={SortBy.DATE}>Fecha de subida</option>
+              <option value={SortBy.DATE}>Fecha</option>
             </select>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={toggleSortOrder}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 cursor-pointer transition-colors"
-            >
-              {sortOrder === SortOrder.ASC ? (
-                <LuArrowUpDown className="w-4 h-4 text-muted-foreground" />
-              ) : (
-                <LuArrowDownUp className="w-4 h-4 text-muted-foreground" />
-              )}
-              <span className="text-sm text-muted-foreground">
-                Fecha de subida
-              </span>
-            </button>
 
             <button
-              onClick={handleOpenModal}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 px-3 py-2 rounded-lg flex justify-center items-center p-2"
+              onClick={toggleSortOrder}
+              className="h-10 w-10 flex items-center justify-center rounded-lg bg-muted hover:bg-muted/80 cursor-pointer transition-colors"
             >
-              <LuPlus className="w-4 h-4" />
-              <span>Subir imagen</span>
+              {sortOrder === SortOrder.ASC ? (
+                <LuArrowUpDown className="text-white" />
+              ) : (
+                <LuArrowDownUp className="text-white" />
+              )}
             </button>
           </div>
         </div>
