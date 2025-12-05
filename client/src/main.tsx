@@ -9,8 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    {/* <App /> */}
     <RouterProvider router={router} />
-    <ToastContainer />
+    <ToastContainer theme="dark" />
   </StrictMode>
 );

@@ -10,7 +10,7 @@ function NotFound() {
 
           <div className="relative space-y-2">
             <LuFileQuestion className="w-24 h-24 mx-auto text-muted-foreground/30" />
-            <h1 className="text-8xl font-bold text-primary tracking-tighter">
+            <h1 className="text-8xl font-bold text-violet-600 tracking-tighter">
               404
             </h1>
           </div>
@@ -29,7 +29,7 @@ function NotFound() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
           <Link
             to="/galery"
-            className="w-full sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-2.5 bg-violet-600 hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             <LuHouse className="w-4 h-4" />
             Ir al Inicio

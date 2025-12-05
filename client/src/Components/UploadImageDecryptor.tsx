@@ -132,7 +132,8 @@ const UploadImageDecryptor: React.FC = () => {
           </p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          <div className="space-y-6">
+          {/* <div className="space-y-6 bg-neutral-900 p-4"> */}
+          <div className="bg-neutral-900 space-y-6 p-4 border-2 border-dashed border-neutral-800 rounded-lg">
             <div className="space-y-3">
               <label className="block text-sm font-semibold">
                 Seleccionar imagen cifrada
@@ -147,7 +148,7 @@ const UploadImageDecryptor: React.FC = () => {
                 />
                 <label
                   htmlFor="file-upload"
-                  className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-border rounded-lg hover:bg-card cursor-pointer transition-colors"
+                  className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed rounded-lg hover:bg-card cursor-pointer transition-colors bg-neutral-800 p-6 md:p-8 border-neutral-700"
                 >
                   <div className="text-center">
                     <LuLock className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
@@ -174,7 +175,7 @@ const UploadImageDecryptor: React.FC = () => {
                 id="clave"
                 type="password"
                 placeholder="Ingresa tu clave privada"
-                className="w-full px-4 py-2.5 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                className="w-full px-4 py-2.5 border border-neutral-700 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all bg-neutral-800"
                 value={clave}
                 onChange={(e) => setClave(e.target.value)}
               />
@@ -246,7 +247,7 @@ const UploadImageDecryptor: React.FC = () => {
                         e.target.value as "jpeg" | "png" | "gif"
                       )
                     }
-                    className="w-full px-4 py-2.5 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 border border-neutral-700 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all bg-neutral-800"
                   >
                     <option value="jpeg">JPEG</option>
                     <option value="png">PNG</option>
@@ -262,7 +263,7 @@ const UploadImageDecryptor: React.FC = () => {
                 </button>
               </>
             ) : (
-              <div className="flex items-center justify-center h-64 sm:h-72 bg-card border-2 border-dashed border-border rounded-lg">
+              <div className="flex items-center bg-neutral-900 justify-center h-full sm:h-72 border-2 border-dashed border-neutral-800 rounded-lg">
                 <div className="text-center">
                   <LuLockOpen className="w-8 h-8 mx-auto mb-2 text-muted-foreground opacity-50" />
                   <p className="text-sm text-muted-foreground">
