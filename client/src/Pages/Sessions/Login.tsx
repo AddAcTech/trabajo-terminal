@@ -47,6 +47,7 @@ function Login() {
         );
       }
       //guardar en el local Storage información fundamental
+      //guardar en el local Storage información fundamental
       if (responseData.token) {
         localStorage.setItem("token", responseData.token);
       }
