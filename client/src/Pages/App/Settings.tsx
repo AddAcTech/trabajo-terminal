@@ -225,12 +225,12 @@ export default function Settings() {
         </div>
       </div>
     
-      <div className="flex flex-row border-2 border-red-600 rounded-2xl w-fit p-2 m-4 mt-6" >
+      <div className="flex flex-row border-2 border-red-600 rounded-2xl max-w-2xl mx-auto p-3 md:p-8" >
             <div className="flex flex-col items">
-              <h2>Borrar cuenta</h2>
-              <span>Borrar su cuenta elimina toda su informacióne imagenes subidas a la plataforma, siendo una acción irreversible </span>
+              <h2 className="text-xl font-semibold text-neutral-50">Borrar cuenta</h2>
+              <span className="text-sm text-neutral-300">Borrar su cuenta elimina toda su informacióne imagenes subidas a la plataforma, siendo una acción irreversible.</span>
             </div>
-            <button className="flex text-center text-white bg-red-600 rounded-4xl align-middle" type="button" onClick={() => {deleteAccount()}}>
+            <button className="flex text-center font-bold text-white bg-red-600 rounded-2xl align-middle" type="button" onClick={() => {deleteAccount()}}>
               BORRAR CUENTA
             </button>
       </div>
