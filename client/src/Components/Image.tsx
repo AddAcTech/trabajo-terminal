@@ -65,7 +65,7 @@ function Image({
   };
   //TODO obtener las columnas extras de la base de datos y añadirlas a los parametros
   return (
-    <div className="group bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors">
+    <div className="group bg-neutral-800 rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors">
       {deleteOpen && (
         <Delete
           isOpen={deleteOpen}

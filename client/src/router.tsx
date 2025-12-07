@@ -19,6 +19,10 @@ const router = createBrowserRouter([
     element: <DefaultLayout />,
     children: [
       {
+        path: "/",
+        element: <Galery />,
+      },
+      {
         path: "/galery",
         element: <Galery />,
       },
@@ -33,7 +37,7 @@ const router = createBrowserRouter([
       {
         path: "/upload-2-decrypt",
         element: <UploadImageDecrytion />,
-      }
+      },
       // {
       //   path: "/encrypt",
       //   element: <Si />,
