@@ -29,6 +29,7 @@ function Image({
   const [download, setDownload] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   const handleOpenModal = () => setDownload(true);
   const handleCloseModal = () => setDownload(false);
@@ -36,6 +37,11 @@ function Image({
   const handleCloseDelete = () => setDeleteOpen(false);
 
   const [verImagen, setVerImagen] = useState(false);
+
+  const handleImageTap = () => {
+    // En móvil, mostrar overlay al tocar
+    setShowOverlay(!showOverlay);
+  };
 
   const handleDeleteConfirm = async () => {
     setDeleting(true);
@@ -99,17 +105,28 @@ function Image({
           src={image.image}
           loading="lazy"
           onClick={() => setVerImagen(true)}
+          onTouchStart={handleImageTap}
           className="object-cover w-full h-full"
         />
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+        <div
+          className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-3 ${
+            showOverlay ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`}
+        >
           <button
-            onClick={handleOpenModal}
+            onClick={() => {
+              handleOpenModal();
+              setShowOverlay(false);
+            }}
             className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg p-4 hover:cursor-pointer"
           >
             <LuDownload />
           </button>
           <button
-            onClick={handleOpenDelete}
+            onClick={() => {
+              handleOpenDelete();
+              setShowOverlay(false);
+            }}
             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg p-4 hover:cursor-pointer"
           >
             <LuTrash2 />
