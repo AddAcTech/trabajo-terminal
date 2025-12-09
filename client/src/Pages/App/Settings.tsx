@@ -75,6 +75,39 @@ export default function Settings() {
     }
   };
 
+  async function deleteAccount(): Promise<import("react").MouseEventHandler<HTMLButtonElement> | undefined> {
+    try {
+      const token = localStorage.getItem("token");
+      const id_user = sessionStorage.getItem("id");
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/${id_user}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            id_user: id_user
+          }),
+        }
+      );
+      if (!response.ok) {
+        toast.error("Error al borrar la cuenta");
+        return;
+      }
+      toast.success("Usuario eliminado correctamente");
+
+      //Limpiar información para el login
+      localStorage.clear();
+      sessionStorage.clear();
+      navigate("/login");
+    } catch {
+      toast.error("No se pudo actualizar la configuración");
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-auto">
       <div className="max-w-2xl mx-auto p-6 md:p-8">
@@ -191,6 +224,16 @@ export default function Settings() {
           </button>
         </div>
       </div>
-    </form>
+    
+      <div className="flex flex-row border-2 border-red-600 rounded-2xl max-w-2xl mx-auto p-3 md:p-8" >
+            <div className="flex flex-col items">
+              <h2 className="text-xl font-semibold text-neutral-50">Borrar cuenta</h2>
+              <span className="text-sm text-neutral-300">Borrar su cuenta elimina toda su informacióne imagenes subidas a la plataforma, siendo una acción irreversible.</span>
+            </div>
+            <button className="flex text-center font-bold text-white bg-red-600 rounded-2xl align-middle" type="button" onClick={() => {deleteAccount()}}>
+              BORRAR CUENTA
+            </button>
+      </div>
+      </form>
   );
 }

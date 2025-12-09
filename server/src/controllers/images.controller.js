@@ -78,14 +78,9 @@ export const deleteImage = async (req, res) => {
       return res.status(404).json({ error: "Image not found" });
     }
 
-    const destroyResult = await cloudinary.uploader.destroy(image.publicId, {
-      resource_type: "image",
-      invalidate: true,
-    });
-    if (
-      destroyResult &&
-      (destroyResult.result === "ok" || destroyResult.result === "not found")
-    ) {
+    const resultado = await borrarImagen(image.publicId);
+    
+    if ( resultado ) {
       await image.destroy();
       return res.status(204).send();
     } else {
@@ -112,3 +107,12 @@ export const getImages = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const borrarImagen = async (publicId) => {
+  const destroyResult = await cloudinary.uploader.destroy(publicId, {
+      resource_type: "image",
+      invalidate: true,
+    });
+    return destroyResult &&
+      (destroyResult.result === "ok" || destroyResult.result === "not found")
+}
