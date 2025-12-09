@@ -106,12 +106,18 @@ function Image({
           loading="lazy"
           onClick={() => setVerImagen(true)}
           onTouchStart={handleImageTap}
+          onTouchEnd={handleImageTap}
           className="object-cover w-full h-full"
         />
         <div
           className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-3 ${
             showOverlay ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          } ${
+            showOverlay
+              ? "pointer-events-auto"
+              : "pointer-events-none group-hover:pointer-events-auto"
           }`}
+          onClick={(e) => e.currentTarget === e.target && setShowOverlay(false)}
         >
           <button
             onClick={() => {
