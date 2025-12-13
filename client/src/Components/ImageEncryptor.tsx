@@ -9,6 +9,7 @@ const ImageEncryptor: React.FC<{
     date: string;
     extraCols: number;
     extraRows: number;
+    blockSize : number;
   }) => void;
   claveMaestra: string | null;
 }> = ({ onClose, claveMaestra }) => {
@@ -18,7 +19,7 @@ const ImageEncryptor: React.FC<{
   const [isLoading, setIsLoading] = useState(false);
   const [extraRows, setExtraRows] = useState(0);
   const [extraCols, setExtraCols] = useState(0);
-  const blockSize = 8;
+  const [blockSize ] = useState(8);
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     setSelectedImage(file);
@@ -145,7 +146,7 @@ const ImageEncryptor: React.FC<{
         //después, vamos a necesitar este dato de columnas y filas que se añaden
         formData.append("extraCols", String(extraCols || 0));
         formData.append("extraRows", String(extraRows || 0));
-
+        formData.append("blockSize", String(blockSize));
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/images/upload`,
           {
@@ -167,6 +168,7 @@ const ImageEncryptor: React.FC<{
             date: today,
             extraCols: extraCols,
             extraRows: extraRows,
+            blockSize: blockSize,
           });
         } else {
           console.error(
@@ -268,7 +270,7 @@ const ImageEncryptor: React.FC<{
                 className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 text-neutral-50 rounded-lg hover:bg-neutral-700 hover:border-neutral-600 transition-all flex items-center justify-center gap-2 font-medium"
               >
                 <LuDownload className="w-4 h-4" />
-                Descargar JPEG
+                Descargar imagan cifrada como JPEG
               </button>
             )}
             <button

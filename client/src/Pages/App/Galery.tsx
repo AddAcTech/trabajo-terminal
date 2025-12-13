@@ -24,6 +24,7 @@ type ImageData = {
   userId: number;
   extraCols: number;
   extraRows: number;
+  blockSize: number;
   bytes: number;
 };
 
@@ -53,6 +54,7 @@ function Galery() {
         date: imageData.date!,
         extraCols: imageData.extraCols!,
         extraRows: imageData.extraRows!,
+        blockSize: imageData.blockSize!,
         publicId: imageData.publicId!,
         id: imageData.id!,
         bytes: imageData.bytes || 0,
@@ -82,6 +84,7 @@ function Galery() {
           image: image.url,
           extraCols: image.extraCols,
           extraRows: image.extraRows,
+          blockSize: image.blockSize,
           bytes: image.bytes,
         }));
         setMyImages(images);

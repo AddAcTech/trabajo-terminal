@@ -10,12 +10,13 @@ export type ImageProps = {
   image: string;
   extraCols: number;
   extraRows: number;
+  blockSize: number;
   publicId: string;
   id: number;
   bytes: number;
 };
 
-const blockSize = 8;
+//const blockSize = 8; //ya se recupera de la bd
 
 function Image({
   image,
@@ -86,7 +87,7 @@ function Image({
           onClose={handleCloseModal}
           hint={image.hint}
           src={image.image}
-          blockSize={blockSize}
+          blockSize={image.blockSize}
           extraCols={image.extraCols}
           extraRows={image.extraRows}
           claveMaestra={claveMaestra}

@@ -90,6 +90,22 @@ const Download: React.FC<DownloadProps> = ({
       });
   };
 
+  //descargar imagen cifrada con sus metadatos
+  const downloadJPEG = async () => {
+    if (!src) return;
+    try {
+      const blob = await fetch(src).then((r) => r.blob());
+
+      await downloadBlob(blob, `${hint}_cifrada`, "jpeg", {
+        extraCols,
+        extraRows,
+        blockSize,
+      });
+    } catch (error) {
+      console.error("Error al descargar:", error);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -201,6 +217,14 @@ const Download: React.FC<DownloadProps> = ({
                 </button>
               </div>
             )}
+
+            <button
+              onClick={downloadJPEG}
+              className=" w-full flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 text-neutral-50 rounded-lg hover:bg-neutral-700 hover:border-neutral-600 transition-all flex items-center justify-center gap-2 font-medium"
+            >
+              <LuDownload className="w-4 h-4" />
+                Descargar imagan cifrada como JPEG
+            </button>
           </div>
 
           <div className="mt-6 p-4 bg-secondary rounded-lg border border-border">

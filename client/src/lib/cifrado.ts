@@ -111,7 +111,7 @@ export async function decryptImage(imageData: { width: any; height: any; data?: 
     if (!Number.isFinite(blockSize) || blockSize <= 0) throw new Error("blockSize inválido");
     if (!Number.isFinite(width) || !Number.isFinite(height)) throw new Error("Dimensiones inválidas");
     const paddedData = new Uint8ClampedArray(newWidth * newHeight * 4);
-  
+    paddedData.fill(255);
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const srcIndex = (y * width + x) * 4;

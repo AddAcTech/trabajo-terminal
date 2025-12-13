@@ -33,6 +33,10 @@ const Image = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    blockSize : {
+      type : DataTypes.INTEGER,
+      allowNull : false
+    },
     bytes: {
       type: DataTypes.INTEGER,
       allowNull: true,

@@ -22,7 +22,8 @@ export const storeImage = async (req, res) => {
     }
 
     // Get title from request body
-    const { description, extraCols, extraRows } = req.body;
+    console.log(res.body);
+    const { description, extraCols, extraRows, blockSize } = req.body;
 
     if (!description) {
       return res.status(400).json({ error: "Description is required" });
@@ -47,6 +48,7 @@ export const storeImage = async (req, res) => {
       userId: req.user.userId,
       extraCols: extraCols,
       extraRows: extraRows,
+      blockSize: blockSize,
       bytes: uploadResponse.bytes,
     });
 
@@ -61,6 +63,7 @@ export const storeImage = async (req, res) => {
         bytes: image.bytes,
         extraCols: image.extraCols,
         extraRows: image.extraRows,
+        blockSize: blockSize,
       },
     });
   } catch (error) {
